@@ -125,10 +125,11 @@
 <span></span><span class="c1"># Create a SCRIP file from an MPAS mesh.</span>
 <span class="c1"># See for details: http://www.earthsystemmodeling.org/esmf_releases/public/ESMF_5_2_0rp1/ESMF_refdoc/node3.html#SECTION03024000000000000000</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">optparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionParser</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">optparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionParser</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.cime.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 
@@ -150,9 +151,9 @@
 <span class="sd">        Whether to use the landIceMask field for masking</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">useLandIceMask</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">" -- Landice Masks are enabled"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">' -- Landice Masks are enabled'</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">" -- Landice Masks are disabled"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">' -- Landice Masks are disabled'</span><span class="p">)</span>
 
     <span class="c1"># make a space in stdout before further output</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
@@ -175,20 +176,24 @@
 
     <span class="c1"># check the longitude convention to use positive values [0 2pi]</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"lonCell is not in the desired range (0, 2pi)"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'lonCell is not in the desired range (0, 2pi)'</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">lonVertex</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lonVertex</span> <span class="o">&gt;</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"lonVertex is not in the desired range (0, 2pi)"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'lonVertex is not in the desired range (0, 2pi)'</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">sphereRadius</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">sphereRadius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">'SHR_CONST_REARTH'</span><span class="p">]</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">" -- WARNING: sphereRadius&lt;0 so setting sphereRadius = "</span>
-              <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">constants</span><span class="p">[</span><span class="s1">'SHR_CONST_REARTH'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">' -- WARNING: sphereRadius&lt;0 so setting sphereRadius = '</span>
+            <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">constants</span><span class="p">[</span><span class="s2">"SHR_CONST_REARTH"</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span>
+        <span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">on_a_sphere</span> <span class="o">==</span> <span class="s2">"NO"</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">" -- WARNING: 'on_a_sphere' attribute is 'NO', which means that "</span>
-              <span class="s2">"there may be some disagreement regarding area between the "</span>
-              <span class="s2">"planar (source) and spherical (target) mesh"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">on_a_sphere</span> <span class="o">==</span> <span class="s1">'NO'</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">" -- WARNING: 'on_a_sphere' attribute is 'NO', which means that "</span>
+            <span class="s1">'there may be some disagreement regarding area between the '</span>
+            <span class="s1">'planar (source) and spherical (target) mesh'</span>
+        <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">useLandIceMask</span><span class="p">:</span>
         <span class="n">landIceMask</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'landIceMask'</span><span class="p">][:]</span>
@@ -197,46 +202,52 @@
 
     <span class="c1"># Write to output file</span>
     <span class="c1"># Dimensions</span>
-    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_size"</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
-    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_corners"</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">)</span>
-    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_rank"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">'grid_corners'</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">)</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">'grid_rank'</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># Variables</span>
-    <span class="n">grid_center_lat</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'grid_center_lat'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span>
-                                          <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,))</span>
+    <span class="n">grid_center_lat</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+        <span class="s1">'grid_center_lat'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,)</span>
+    <span class="p">)</span>
     <span class="n">grid_center_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">'radians'</span>
-    <span class="n">grid_center_lon</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'grid_center_lon'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span>
-                                          <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,))</span>
+    <span class="n">grid_center_lon</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+        <span class="s1">'grid_center_lon'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,)</span>
+    <span class="p">)</span>
     <span class="n">grid_center_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">'radians'</span>
-    <span class="n">grid_corner_lat</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'grid_corner_lat'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span>
-                                          <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,</span> <span class="s1">'grid_corners'</span><span class="p">))</span>
+    <span class="n">grid_corner_lat</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+        <span class="s1">'grid_corner_lat'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,</span> <span class="s1">'grid_corners'</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">grid_corner_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">'radians'</span>
-    <span class="n">grid_corner_lon</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'grid_corner_lon'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span>
-                                          <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,</span> <span class="s1">'grid_corners'</span><span class="p">))</span>
+    <span class="n">grid_corner_lon</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+        <span class="s1">'grid_corner_lon'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,</span> <span class="s1">'grid_corners'</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">grid_corner_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">'radians'</span>
     <span class="n">grid_area</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'grid_area'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,))</span>
     <span class="n">grid_area</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">'radian^2'</span>
     <span class="n">grid_imask</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'grid_imask'</span><span class="p">,</span> <span class="s1">'i4'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'grid_size'</span><span class="p">,))</span>
-    <span class="n">grid_imask</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">'unitless'</span>
+    <span class="n">grid_imask</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">'1'</span>
     <span class="n">grid_dims</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'grid_dims'</span><span class="p">,</span> <span class="s1">'i4'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'grid_rank'</span><span class="p">,))</span>
 
     <span class="n">grid_center_lat</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">latCell</span><span class="p">[:]</span>
     <span class="n">grid_center_lon</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">lonCell</span><span class="p">[:]</span>
     <span class="c1"># SCRIP uses square radians</span>
-    <span class="n">grid_area</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">areaCell</span><span class="p">[:]</span><span class="o">/</span><span class="p">(</span><span class="n">sphereRadius</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">grid_area</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">areaCell</span><span class="p">[:]</span> <span class="o">/</span> <span class="p">(</span><span class="n">sphereRadius</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
     <span class="n">grid_dims</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">nCells</span>
 
     <span class="c1"># grid corners:</span>
     <span class="n">grid_corner_lon_local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">))</span>
     <span class="n">grid_corner_lat_local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">))</span>
     <span class="n">cellIndices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span>
-    <span class="n">lastValidVertex</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">cellIndices</span><span class="p">,</span> <span class="n">nEdgesOnCell</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">lastValidVertex</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">cellIndices</span><span class="p">,</span> <span class="n">nEdgesOnCell</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">iVertex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxVertices</span><span class="p">):</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">iVertex</span> <span class="o">&lt;</span> <span class="n">nEdgesOnCell</span>
-        <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="n">latVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]]</span>
-        <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="n">lonVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]]</span>
+        <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">latVertex</span><span class="p">[</span>
+            <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">lonVertex</span><span class="p">[</span>
+            <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span>
+        <span class="p">]</span>
 
         <span class="n">mask</span> <span class="o">=</span> <span class="n">iVertex</span> <span class="o">&gt;=</span> <span class="n">nEdgesOnCell</span>
         <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">latVertex</span><span class="p">[</span><span class="n">lastValidVertex</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
@@ -252,51 +263,86 @@
     <span class="n">grid_corner_lat</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lat_local</span><span class="p">[:]</span>
     <span class="n">grid_corner_lon</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lon_local</span><span class="p">[:]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Input latCell min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">latCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">latCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Input lonCell min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">lonCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lonCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Calculated grid_center_lat min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-         <span class="n">grid_center_lat</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_center_lat</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Calculated grid_center_lon min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">grid_center_lon</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_center_lon</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Calculated grid_area min/max values (sq radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">grid_area</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_area</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">'Input latCell min/max values (radians): </span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">latCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">latCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">'Input lonCell min/max values (radians): </span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">lonCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lonCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">'Calculated grid_center_lat min/max values (radians): </span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">grid_center_lat</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_center_lat</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">'Calculated grid_center_lon min/max values (radians): </span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">grid_center_lon</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_center_lon</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">'Calculated grid_area min/max values (sq radians): </span><span class="si">{}</span><span class="s1">, </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">grid_area</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_area</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
     <span class="n">fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"Creation of SCRIP file is complete."</span><span class="p">)</span></div>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">'Creation of SCRIP file is complete.'</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"== Gathering information.  (Invoke with --help for more details. "</span>
-          <span class="s2">"All arguments are optional)"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s1">'== Gathering information.  (Invoke with --help for more details. '</span>
+        <span class="s1">'All arguments are optional)'</span>
+    <span class="p">)</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">"This script takes an MPAS grid file and generates "</span> \
-                         <span class="s2">"a SCRIP grid file."</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">"-m"</span><span class="p">,</span> <span class="s2">"--mpas"</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">"mpasFile"</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">"MPAS grid file name used as input."</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="s2">"grid.nc"</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">"FILENAME"</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">"-s"</span><span class="p">,</span> <span class="s2">"--scrip"</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">"scripFile"</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">"SCRIP grid file to output."</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"scrip.nc"</span><span class="p">,</span>
-                      <span class="n">metavar</span><span class="o">=</span><span class="s2">"FILENAME"</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">"-l"</span><span class="p">,</span> <span class="s2">"--landice"</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">"landiceMasks"</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">"If flag is on, landice masks will be computed "</span>
-                           <span class="s2">"and used."</span><span class="p">,</span>
-                      <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">'This script takes an MPAS grid file and generates a SCRIP grid file.'</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span>
+        <span class="s1">'-m'</span><span class="p">,</span>
+        <span class="s1">'--mpas'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'mpasFile'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'MPAS grid file name used as input.'</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">'grid.nc'</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">'FILENAME'</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span>
+        <span class="s1">'-s'</span><span class="p">,</span>
+        <span class="s1">'--scrip'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'scripFile'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'SCRIP grid file to output.'</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">'scrip.nc'</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">'FILENAME'</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span>
+        <span class="s1">'-l'</span><span class="p">,</span>
+        <span class="s1">'--landice'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'landiceMasks'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'If flag is on, landice masks will be computed and used.'</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">'store_true'</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">option_list</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">option</span><span class="o">.</span><span class="n">default</span> <span class="o">!=</span> <span class="p">(</span><span class="s2">"NO"</span><span class="p">,</span> <span class="s2">"DEFAULT"</span><span class="p">):</span>
-            <span class="n">option</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">" "</span> <span class="k">if</span> <span class="n">option</span><span class="o">.</span><span class="n">help</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"[default: </span><span class="si">%d</span><span class="s2">efault]"</span>
+        <span class="k">if</span> <span class="n">option</span><span class="o">.</span><span class="n">default</span> <span class="o">!=</span> <span class="p">(</span><span class="s1">'NO'</span><span class="p">,</span> <span class="s1">'DEFAULT'</span><span class="p">):</span>
+            <span class="n">option</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">' '</span> <span class="k">if</span> <span class="n">option</span><span class="o">.</span><span class="n">help</span> <span class="k">else</span> <span class="s1">''</span><span class="p">)</span> <span class="o">+</span> <span class="s1">'[default: </span><span class="si">%d</span><span class="s1">efault]'</span>
     <span class="n">options</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">mpasFile</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'MPAS input grid file is required.  Specify with -m '</span>
-                         <span class="s1">'command line argument.'</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">'MPAS input grid file is required.  Specify with -m '</span>
+            <span class="s1">'command line argument.'</span>
+        <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">scripFile</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'SCRIP output grid file is required.  Specify with '</span>
-                         <span class="s1">'-s command line argument.'</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s1">'SCRIP output grid file is required.  Specify with '</span>
+            <span class="s1">'-s command line argument.'</span>
+        <span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">landiceMasks</span><span class="p">:</span>
         <span class="n">options</span><span class="o">.</span><span class="n">landiceMasks</span> <span class="o">=</span> <span class="kc">False</span>

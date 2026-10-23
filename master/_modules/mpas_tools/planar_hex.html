@@ -124,22 +124,35 @@
   <h1>Source code for mpas_tools.planar_hex</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
-    <span class="n">unicode_literals</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">absolute_import</span><span class="p">,</span>
+    <span class="n">division</span><span class="p">,</span>
+    <span class="n">print_function</span><span class="p">,</span>
+    <span class="n">unicode_literals</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.attrs</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_mesh_attrs</span>
 
 
 <div class="viewcode-block" id="make_planar_hex_mesh">
 <a class="viewcode-back" href="../../generated/mpas_tools.planar_hex.make_planar_hex_mesh.html#mpas_tools.planar_hex.make_planar_hex_mesh">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">dc</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="p">,</span>
-                         <span class="n">nonperiodic_y</span><span class="p">,</span> <span class="n">outFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="n">compareWithFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                         <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_planar_hex_mesh</span><span class="p">(</span>
+    <span class="n">nx</span><span class="p">,</span>
+    <span class="n">ny</span><span class="p">,</span>
+    <span class="n">dc</span><span class="p">,</span>
+    <span class="n">nonperiodic_x</span><span class="p">,</span>
+    <span class="n">nonperiodic_y</span><span class="p">,</span>
+    <span class="n">outFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">compareWithFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Builds an MPAS periodic, planar hexagonal mesh with the requested</span>
 <span class="sd">    dimensions, optionally saving it to a file, and returns it as an</span>
@@ -198,6 +211,8 @@
     <span class="c1"># the hex mesh</span>
     <span class="n">mesh</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">drop_vars</span><span class="p">([</span><span class="s1">'cellIdx'</span><span class="p">,</span> <span class="s1">'cellRow'</span><span class="p">,</span> <span class="s1">'cellCol'</span><span class="p">])</span>
 
+    <span class="n">add_mesh_attrs</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">outFileName</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">write_netcdf</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
 
@@ -212,8 +227,10 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">initial_setup</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">ny</span><span class="p">,</span> <span class="n">dc</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="p">,</span> <span class="n">nonperiodic_y</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Setup the dimensions and add placeholders for some index variables"""</span>
     <span class="k">if</span> <span class="n">ny</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'ny must be divisible by 2 for the grid</span><span class="se">\'</span><span class="s1">s '</span>
-                         <span class="s1">'periodicity to work properly.'</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">"ny must be divisible by 2 for the grid's "</span>
+            <span class="s1">'periodicity to work properly.'</span>
+        <span class="p">)</span>
 
     <span class="n">mesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
 
@@ -223,19 +240,19 @@
         <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'is_periodic'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'YES'</span>
 
     <span class="k">if</span> <span class="n">nonperiodic_x</span><span class="p">:</span>
-        <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'x_period'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'x_period'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'x_period'</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">*</span> <span class="n">dc</span>
     <span class="k">if</span> <span class="n">nonperiodic_y</span><span class="p">:</span>
-        <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'y_period'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'y_period'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'y_period'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'y_period'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ny</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
 
     <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'dc'</span><span class="p">]</span> <span class="o">=</span> <span class="n">dc</span>
     <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'nx'</span><span class="p">]</span> <span class="o">=</span> <span class="n">nx</span>
     <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'ny'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ny</span>
     <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'on_a_sphere'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'NO'</span>
-    <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'sphere_radius'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'sphere_radius'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="k">if</span> <span class="n">nonperiodic_x</span><span class="p">:</span>
         <span class="n">nx</span> <span class="o">=</span> <span class="n">nx</span> <span class="o">+</span> <span class="mi">2</span>
@@ -254,8 +271,9 @@
     <span class="n">indexToVertexID</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'i4'</span><span class="p">)</span>
 
     <span class="n">cellIdx</span> <span class="o">=</span> <span class="n">indexToCellID</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">)</span>
-    <span class="n">cellCol</span><span class="p">,</span> <span class="n">cellRow</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'i4'</span><span class="p">),</span>
-                                      <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'i4'</span><span class="p">))</span>
+    <span class="n">cellCol</span><span class="p">,</span> <span class="n">cellRow</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'i4'</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">'i4'</span><span class="p">)</span>
+    <span class="p">)</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellIdx'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'ny'</span><span class="p">,</span> <span class="s1">'nx'</span><span class="p">),</span> <span class="n">cellIdx</span><span class="p">)</span>
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellRow'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">cellRow</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
@@ -268,25 +286,38 @@
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'cullCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="s1">'i4'</span><span class="p">))</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'nEdgesOnCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="mi">6</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nCells</span><span class="p">,),</span> <span class="s1">'i4'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellsOnCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="s1">'maxEdges'</span><span class="p">),</span>
-                           <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'edgesOnCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="s1">'maxEdges'</span><span class="p">),</span>
-                           <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'verticesOnCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="s1">'maxEdges'</span><span class="p">),</span>
-                              <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellsOnCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="s1">'maxEdges'</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'edgesOnCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="s1">'maxEdges'</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'verticesOnCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="s1">'maxEdges'</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'nEdgesOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,),</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,),</span> <span class="s1">'i4'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellsOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'TWO'</span><span class="p">),</span>
-                           <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'edgesOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'maxEdges2'</span><span class="p">),</span>
-                           <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'verticesOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'TWO'</span><span class="p">),</span>
-                              <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellsOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'TWO'</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'edgesOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'maxEdges2'</span><span class="p">),</span>
+        <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'verticesOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'TWO'</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">),</span>
+    <span class="p">)</span>
 
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellsOnVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">),</span>
-                             <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'edgesOnVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">),</span>
-                             <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'cellsOnVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'edgesOnVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="s1">'i4'</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">mesh</span>
 
@@ -297,7 +328,7 @@
     <span class="n">nCells</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nCells'</span><span class="p">]</span>
     <span class="n">nx</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nx'</span><span class="p">]</span>
     <span class="n">cullCell</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">cullCell</span><span class="p">[</span><span class="n">nCells</span> <span class="o">-</span> <span class="n">nx</span><span class="p">:</span><span class="n">nCells</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cullCell</span><span class="p">[</span><span class="n">nCells</span> <span class="o">-</span> <span class="n">nx</span> <span class="p">:</span> <span class="n">nCells</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">mark_cull_cell_nonperiodic_x</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
@@ -306,7 +337,7 @@
     <span class="n">nCells</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nCells'</span><span class="p">]</span>
     <span class="n">nx</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nx'</span><span class="p">]</span>
     <span class="n">cullCell</span><span class="p">[::</span><span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">cullCell</span><span class="p">[</span><span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span><span class="n">nCells</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">cullCell</span><span class="p">[</span><span class="n">nx</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">nCells</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">nx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_indices_on_cell</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
@@ -436,14 +467,19 @@
 
     <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nEdges'</span><span class="p">]</span>
     <span class="n">maxEdges2</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'maxEdges2'</span><span class="p">]</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'weightsOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'maxEdges2'</span><span class="p">),</span>
-                             <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="n">maxEdges2</span><span class="p">),</span> <span class="s1">'f8'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'weightsOnEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'maxEdges2'</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,</span> <span class="n">maxEdges2</span><span class="p">),</span> <span class="s1">'f8'</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">weightsOnEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">weightsOnEdge</span>
 
-    <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">))</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
-        <span class="p">[[</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">6.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">6.</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">],</span>
-         <span class="p">[</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">6.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mf">6.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">],</span>
-         <span class="p">[</span><span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">6.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">6.</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">]])</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">))</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">[</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">],</span>
+            <span class="p">[</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">],</span>
+            <span class="p">[</span><span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">6.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">3.0</span><span class="p">],</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
             <span class="n">weightsOnEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">3</span><span class="p">],</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
@@ -477,7 +513,7 @@
     <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">cellRow</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'xCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dc</span> <span class="o">*</span> <span class="p">(</span><span class="n">cellCol</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">))</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">dc</span> <span class="o">*</span> <span class="p">(</span><span class="n">cellCol</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'yCell'</span><span class="p">]</span> <span class="o">=</span> <span class="n">dc</span> <span class="o">*</span> <span class="p">(</span><span class="n">cellRow</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'yCell'</span><span class="p">]</span> <span class="o">=</span> <span class="n">dc</span> <span class="o">*</span> <span class="p">(</span><span class="n">cellRow</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'zCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'xEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
@@ -487,54 +523,77 @@
     <span class="n">mesh</span><span class="o">.</span><span class="n">xEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span>
     <span class="n">mesh</span><span class="o">.</span><span class="n">yEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span>
 
-    <span class="n">mesh</span><span class="o">.</span><span class="n">xEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span> <span class="o">-</span> \
-        <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span>
-    <span class="n">mesh</span><span class="o">.</span><span class="n">yEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">-</span> \
-        <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">xEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.0</span>
+    <span class="p">)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">yEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.0</span>
+    <span class="p">)</span>
 
-    <span class="n">mesh</span><span class="o">.</span><span class="n">xEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span> <span class="o">+</span> \
-        <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span>
-    <span class="n">mesh</span><span class="o">.</span><span class="n">yEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">-</span> \
-        <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">xEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.0</span>
+    <span class="p">)</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">yEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.0</span>
+    <span class="p">)</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'xVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'yVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'zVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
 
     <span class="n">mesh</span><span class="o">.</span><span class="n">xVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span>
-    <span class="n">mesh</span><span class="o">.</span><span class="n">yVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">+</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="mf">6.</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">yVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">+</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">6.0</span>
+    <span class="p">)</span>
 
     <span class="n">mesh</span><span class="o">.</span><span class="n">xVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">dc</span>
-    <span class="n">mesh</span><span class="o">.</span><span class="n">yVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">-</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="mf">6.</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">yVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span> <span class="o">-</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">6.0</span>
+    <span class="p">)</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'angleEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="o">.</span><span class="n">angleEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.</span>
-    <span class="n">mesh</span><span class="o">.</span><span class="n">angleEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">angleEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.0</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">angleEdge</span><span class="p">[</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">3.0</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'dcEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nEdges'</span><span class="p">,),</span> <span class="n">dc</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nEdges</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'dvEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dcEdge</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="mf">3.</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'dvEdge'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dcEdge</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">3.0</span>
 
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'areaCell'</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">dc</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nCells</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'areaCell'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,),</span>
+        <span class="n">dc</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nCells</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">),</span>
+    <span class="p">)</span>
 
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'areaTriangle'</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,),</span> <span class="n">dc</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span>
-         <span class="mf">4.</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'areaTriangle'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,),</span>
+        <span class="n">dc</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">),</span>
+    <span class="p">)</span>
 
-    <span class="n">mesh</span><span class="p">[</span><span class="s1">'kiteAreasOnVertex'</span><span class="p">]</span> <span class="o">=</span> \
-        <span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">),</span>
-         <span class="n">dc</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.</span><span class="p">)</span> <span class="o">/</span> <span class="mf">12.</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span>
-         <span class="s1">'f8'</span><span class="p">))</span>
+    <span class="n">mesh</span><span class="p">[</span><span class="s1">'kiteAreasOnVertex'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">),</span>
+        <span class="n">dc</span><span class="o">**</span><span class="mi">2</span>
+        <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">3.0</span><span class="p">)</span>
+        <span class="o">/</span> <span class="mf">12.0</span>
+        <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="s1">'f8'</span><span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="n">mesh</span><span class="p">[</span><span class="s1">'meshDensity'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nCells</span><span class="p">,),</span> <span class="s1">'f8'</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">add_one_to_indices</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Needed to adhere to Fortran indexing"""</span>
-    <span class="n">indexVars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'indexToCellID'</span><span class="p">,</span> <span class="s1">'indexToEdgeID'</span><span class="p">,</span> <span class="s1">'indexToVertexID'</span><span class="p">,</span>
-                 <span class="s1">'cellsOnCell'</span><span class="p">,</span> <span class="s1">'edgesOnCell'</span><span class="p">,</span> <span class="s1">'verticesOnCell'</span><span class="p">,</span>
-                 <span class="s1">'cellsOnEdge'</span><span class="p">,</span> <span class="s1">'edgesOnEdge'</span><span class="p">,</span> <span class="s1">'verticesOnEdge'</span><span class="p">,</span>
-                 <span class="s1">'cellsOnVertex'</span><span class="p">,</span> <span class="s1">'edgesOnVertex'</span><span class="p">]</span>
+    <span class="n">indexVars</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">'indexToCellID'</span><span class="p">,</span>
+        <span class="s1">'indexToEdgeID'</span><span class="p">,</span>
+        <span class="s1">'indexToVertexID'</span><span class="p">,</span>
+        <span class="s1">'cellsOnCell'</span><span class="p">,</span>
+        <span class="s1">'edgesOnCell'</span><span class="p">,</span>
+        <span class="s1">'verticesOnCell'</span><span class="p">,</span>
+        <span class="s1">'cellsOnEdge'</span><span class="p">,</span>
+        <span class="s1">'edgesOnEdge'</span><span class="p">,</span>
+        <span class="s1">'verticesOnEdge'</span><span class="p">,</span>
+        <span class="s1">'cellsOnVertex'</span><span class="p">,</span>
+        <span class="s1">'edgesOnVertex'</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">indexVars</span><span class="p">:</span>
         <span class="n">mesh</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
 
@@ -548,19 +607,19 @@
             <span class="n">diff</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">=</span> <span class="n">mesh</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span> <span class="o">-</span> <span class="n">refMesh</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">diff</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">[</span><span class="n">variable</span><span class="p">])</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">'mesh has extra variable </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mesh</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'mesh has extra variable </span><span class="si">{</span><span class="n">mesh</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">refMesh</span><span class="o">.</span><span class="n">data_vars</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">variable</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mesh</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">'mesh mising variable </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">refMesh</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'mesh mising variable </span><span class="si">{</span><span class="n">refMesh</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">refMesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">'mesh mising attribute </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'mesh mising attribute </span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">refMesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">'mesh has extra attribute </span><span class="si">{}</span><span class="s1">'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'mesh has extra attribute </span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="n">diffFileName</span><span class="p">)</span>
 
@@ -568,28 +627,55 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--nx'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'nx'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">'Cells in x direction'</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--ny'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'ny'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">'Cells in y direction'</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--dc'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'dc'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">'Distance between cell centers in meters'</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--npx'</span><span class="p">,</span> <span class="s1">'--nonperiodic_x'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'nonperiodic_x'</span><span class="p">,</span>
-                        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">'non-periodic in x direction'</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--npy'</span><span class="p">,</span> <span class="s1">'--nonperiodic_y'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'nonperiodic_y'</span><span class="p">,</span>
-                        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">'non-periodic in y direction'</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'-o'</span><span class="p">,</span> <span class="s1">'--outFileName'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'outFileName'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">'grid.nc'</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">'The name of the output file'</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">'--nx'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'nx'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">'Cells in x direction'</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">'--ny'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'ny'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">'Cells in y direction'</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">'--dc'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'dc'</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Distance between cell centers in meters'</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">'--npx'</span><span class="p">,</span>
+        <span class="s1">'--nonperiodic_x'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'nonperiodic_x'</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">'store_true'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'non-periodic in x direction'</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">'--npy'</span><span class="p">,</span>
+        <span class="s1">'--nonperiodic_y'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'nonperiodic_y'</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">'store_true'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'non-periodic in y direction'</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">'-o'</span><span class="p">,</span>
+        <span class="s1">'--outFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'outFileName'</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">'grid.nc'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'The name of the output file'</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">dc</span><span class="p">,</span>
-                         <span class="n">args</span><span class="o">.</span><span class="n">nonperiodic_x</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">nonperiodic_y</span><span class="p">,</span>
-                         <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">)</span>
+    <span class="n">make_planar_hex_mesh</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">dc</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">nonperiodic_x</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">nonperiodic_y</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">,</span>
+    <span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
