@@ -2314,7 +2314,7 @@ int buildMeshQualities(){/*{{{*/
 #endif
 
 					angle1 = acos( max(-1.0, min(1.0, (b_len * b_len + c_len * c_len - a_len * a_len) / (2 * b_len * c_len))));
-					angle2 = acos( max(-1.0, min(1.0, (a_len * a_len + c_len * c_len - b_len * c_len) / (2 * a_len * c_len))));
+					angle2 = acos( max(-1.0, min(1.0, (a_len * a_len + c_len * c_len - b_len * b_len) / (2 * a_len * c_len))));
 					angle3 = acos( max(-1.0, min(1.0, (a_len * a_len + b_len * b_len - c_len * c_len) / (2 * a_len * b_len))));
 
 					minAngle = min(angle1, min(angle2, angle3));
