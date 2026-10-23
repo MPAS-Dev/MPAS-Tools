@@ -1,0 +1,6 @@
+﻿mpas\_tools.landice.visualization.plot\_grounding\_lines
+========================================================
+
+.. currentmodule:: mpas_tools.landice.visualization
+
+.. autofunction:: plot_grounding_lines

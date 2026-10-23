@@ -1,0 +1,6 @@
+﻿mpas\_tools.config.MpasConfigParser.copy
+========================================
+
+.. currentmodule:: mpas_tools.config
+
+.. automethod:: MpasConfigParser.copy
