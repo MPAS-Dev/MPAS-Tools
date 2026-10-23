@@ -92,6 +92,7 @@ Mesh conversion
 
    add_mesh_attrs
    cf_conventions
+   get_mesh_var_attrs
 
 .. currentmodule:: mpas_tools.merge_grids
 

@@ -83,6 +83,8 @@ The output mesh follows the `CF conventions <https://cfconventions.org/>`_.
 Its ``Conventions`` attribute is ``CF-1.8 MPAS``, keeping any CF version
 already in the input's ``Conventions``, and each mesh variable has a
 ``long_name`` and, where they apply, ``units`` and ``standard_name``.
+The latitude and longitude variables only have a ``standard_name`` on
+spherical meshes, since they are not geographic coordinates on planar meshes.
 ``MpasCellCuller.x``, :py:func:`mpas_tools.planar_hex.make_planar_hex_mesh`
 and :py:func:`mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf`
 write the same metadata, which is listed in :py:mod:`mpas_tools.mesh.attrs`.

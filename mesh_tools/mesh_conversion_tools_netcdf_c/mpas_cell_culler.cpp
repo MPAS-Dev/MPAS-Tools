@@ -843,10 +843,10 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 
     ncutil::def_var(outputFilename, "latCell",
         NC_DOUBLE, "latitude of cell centers",
-        {"nCells"}, "radians", "latitude");
+        {"nCells"}, "radians", spherical ? "latitude" : "");
     ncutil::def_var(outputFilename, "lonCell",
         NC_DOUBLE, "longitude of cell centers",
-        {"nCells"}, "radians", "longitude");
+        {"nCells"}, "radians", spherical ? "longitude" : "");
 
     ncutil::put_var(outputFilename, "latCell", &latNew[0]);
     ncutil::put_var(outputFilename, "lonCell", &lonNew[0]);
@@ -915,10 +915,10 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 
     ncutil::def_var(outputFilename, "latEdge",
         NC_DOUBLE, "latitude of edge midpoints",
-        {"nEdges"}, "radians", "latitude");
+        {"nEdges"}, "radians", spherical ? "latitude" : "");
     ncutil::def_var(outputFilename, "lonEdge",
         NC_DOUBLE, "longitude of edge midpoints",
-        {"nEdges"}, "radians", "longitude");
+        {"nEdges"}, "radians", spherical ? "longitude" : "");
 
     ncutil::put_var(outputFilename, "latEdge", &latNew[0]);
     ncutil::put_var(outputFilename, "lonEdge", &lonNew[0]);
@@ -987,10 +987,10 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 
     ncutil::def_var(outputFilename, "latVertex",
         NC_DOUBLE, "latitude of vertices",
-        {"nVertices"}, "radians", "latitude");
+        {"nVertices"}, "radians", spherical ? "latitude" : "");
     ncutil::def_var(outputFilename, "lonVertex",
         NC_DOUBLE, "longitude of vertices",
-        {"nVertices"}, "radians", "longitude");
+        {"nVertices"}, "radians", spherical ? "longitude" : "");
 
     ncutil::put_var(outputFilename, "latVertex", &latNew[0]);
     ncutil::put_var(outputFilename, "lonVertex", &lonNew[0]);
