@@ -6,6 +6,11 @@ attributes of the MPAS mesh variables.  Units are in the plain form that
 udunits parses and CF uses (``m``, ``m2``, ``radians``, ``1`` for
 dimensionless).  Index and connectivity variables and masks have no units.
 
+``SPHERE_VAR_ATTRS`` holds the ``standard_name`` attributes of the latitude
+and longitude variables, which are only added on spherical meshes because the
+latitude and longitude of planar meshes are not geographic coordinates (they
+are all zero).
+
 ``MpasMeshConverter.x`` and ``MpasCellCuller.x`` write the same attributes,
 so the two need to be kept in sync.
 """
@@ -37,42 +42,21 @@ MESH_VAR_ATTRS = {
     'xCell': {'long_name': 'x coordinate of cell centers', 'units': 'm'},
     'yCell': {'long_name': 'y coordinate of cell centers', 'units': 'm'},
     'zCell': {'long_name': 'z coordinate of cell centers', 'units': 'm'},
-    'latCell': {
-        'long_name': 'latitude of cell centers',
-        'units': 'radians',
-        'standard_name': 'latitude',
-    },
-    'lonCell': {
-        'long_name': 'longitude of cell centers',
-        'units': 'radians',
-        'standard_name': 'longitude',
-    },
+    'latCell': {'long_name': 'latitude of cell centers', 'units': 'radians'},
+    'lonCell': {'long_name': 'longitude of cell centers', 'units': 'radians'},
     'xEdge': {'long_name': 'x coordinate of edge midpoints', 'units': 'm'},
     'yEdge': {'long_name': 'y coordinate of edge midpoints', 'units': 'm'},
     'zEdge': {'long_name': 'z coordinate of edge midpoints', 'units': 'm'},
-    'latEdge': {
-        'long_name': 'latitude of edge midpoints',
-        'units': 'radians',
-        'standard_name': 'latitude',
-    },
+    'latEdge': {'long_name': 'latitude of edge midpoints', 'units': 'radians'},
     'lonEdge': {
         'long_name': 'longitude of edge midpoints',
         'units': 'radians',
-        'standard_name': 'longitude',
     },
     'xVertex': {'long_name': 'x coordinate of vertices', 'units': 'm'},
     'yVertex': {'long_name': 'y coordinate of vertices', 'units': 'm'},
     'zVertex': {'long_name': 'z coordinate of vertices', 'units': 'm'},
-    'latVertex': {
-        'long_name': 'latitude of vertices',
-        'units': 'radians',
-        'standard_name': 'latitude',
-    },
-    'lonVertex': {
-        'long_name': 'longitude of vertices',
-        'units': 'radians',
-        'standard_name': 'longitude',
-    },
+    'latVertex': {'long_name': 'latitude of vertices', 'units': 'radians'},
+    'lonVertex': {'long_name': 'longitude of vertices', 'units': 'radians'},
     # geometry
     'areaCell': {
         'long_name': 'area of each cell in the primal mesh',
@@ -161,6 +145,40 @@ MESH_VAR_ATTRS = {
     },
 }
 
+SPHERE_VAR_ATTRS = {
+    'latCell': {'standard_name': 'latitude'},
+    'lonCell': {'standard_name': 'longitude'},
+    'latEdge': {'standard_name': 'latitude'},
+    'lonEdge': {'standard_name': 'longitude'},
+    'latVertex': {'standard_name': 'latitude'},
+    'lonVertex': {'standard_name': 'longitude'},
+}
+
+
+def get_mesh_var_attrs(on_a_sphere):
+    """
+    Get the CF metadata for the MPAS mesh variables on a spherical or planar
+    mesh
+
+    Parameters
+    ----------
+    on_a_sphere : bool
+        Whether the mesh is spherical, in which case latitude and longitude
+        variables get a ``standard_name``
+
+    Returns
+    -------
+    mesh_var_attrs : dict
+        The attributes of each mesh variable
+    """
+    mesh_var_attrs = {
+        name: dict(attrs) for name, attrs in MESH_VAR_ATTRS.items()
+    }
+    if on_a_sphere:
+        for name, attrs in SPHERE_VAR_ATTRS.items():
+            mesh_var_attrs[name].update(attrs)
+    return mesh_var_attrs
+
 
 def cf_conventions(conventions=None):
     """
@@ -194,7 +212,12 @@ def cf_conventions(conventions=None):
 def add_mesh_attrs(ds):
     """
     Add CF metadata to the mesh variables in a dataset and add CF to its
-    ``Conventions``.  Attributes that a variable already has are kept.
+    ``Conventions``.  Attributes that a variable already has are kept, except
+    that a ``latitude`` or ``longitude`` ``standard_name`` is removed from
+    the latitude and longitude variables of a planar mesh.
+
+    Latitude and longitude variables only get a ``standard_name`` if the
+    ``on_a_sphere`` attribute of the dataset is ``YES``.
 
     Parameters
     ----------
@@ -206,10 +229,15 @@ def add_mesh_attrs(ds):
     ds : xarray.Dataset
         The same dataset, for convenience
     """
-    for name, attrs in MESH_VAR_ATTRS.items():
+    on_a_sphere = str(ds.attrs.get('on_a_sphere', '')).strip() == 'YES'
+    for name, attrs in get_mesh_var_attrs(on_a_sphere).items():
         if name not in ds:
             continue
         var_attrs = ds[name].attrs
+        if not on_a_sphere and name in SPHERE_VAR_ATTRS:
+            # planar meshes made with older versions may have these
+            if var_attrs.get('standard_name') in ['latitude', 'longitude']:
+                del var_attrs['standard_name']
         for key, value in attrs.items():
             var_attrs.setdefault(key, value)
     ds.attrs['Conventions'] = cf_conventions(ds.attrs.get('Conventions'))
