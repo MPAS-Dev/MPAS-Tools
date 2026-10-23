@@ -220,6 +220,7 @@ def _cell_del2(mesh):
     del2 : scipy.sparse.csr_matrix
         The cell-to-cell adjacency graph as a sparse matrix
     """
+    ncells = mesh.sizes['nCells']
     xvec = np.array([], dtype=np.int8)
     ivec = np.array([], dtype=np.int32)
     jvec = np.array([], dtype=np.int32)
@@ -245,7 +246,9 @@ def _cell_del2(mesh):
         jvec = np.hstack((jvec, idx_next))
         xvec = np.hstack((xvec, val_edge))
 
-    return csr_matrix((xvec, (ivec, jvec)))
+    # give the shape explicitly: cells with no neighbors, as a culled mesh
+    # can have, would otherwise be left out of it if they come last
+    return csr_matrix((xvec, (ivec, jvec)), shape=(ncells, ncells))
 
 
 if __name__ == '__main__':
