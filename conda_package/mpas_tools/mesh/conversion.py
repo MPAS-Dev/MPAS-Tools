@@ -1,6 +1,6 @@
 import os
 import shutil
-from tempfile import TemporaryDirectory, mkdtemp
+from tempfile import TemporaryDirectory
 
 import numpy as np
 import xarray as xr
@@ -47,24 +47,23 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
     if dir is not None:
         dir = os.path.abspath(dir)
 
-    tempdir = mkdtemp(dir=dir)
-    inFileName = f'{tempdir}/mesh_in.nc'
-    write_netcdf(dsIn, inFileName)
-
-    outFileName = f'{tempdir}/mesh_out.nc'
-
     if graphInfoFileName is not None:
         graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-    outDir = os.path.dirname(outFileName)
+    with TemporaryDirectory(dir=dir) as tempdir:
+        inFileName = f'{tempdir}/mesh_in.nc'
+        write_netcdf(dsIn, inFileName)
 
-    check_call(['MpasMeshConverter.x', inFileName, outFileName], logger)
+        outFileName = f'{tempdir}/mesh_out.nc'
 
-    dsOut = xr.open_dataset(outFileName)
-    dsOut.load()
+        check_call(['MpasMeshConverter.x', inFileName, outFileName], logger)
 
-    if graphInfoFileName is not None:
-        shutil.copyfile(f'{outDir}/graph.info', graphInfoFileName)
+        dsOut = xr.open_dataset(outFileName)
+        dsOut.load()
+        dsOut.close()
+
+        if graphInfoFileName is not None:
+            shutil.copyfile(f'{tempdir}/graph.info', graphInfoFileName)
 
     return dsOut
 
@@ -121,53 +120,52 @@ def cull(
     """
     if dir is not None:
         dir = os.path.abspath(dir)
-    tempdir = mkdtemp(dir=dir)
-    inFileName = f'{tempdir}/ds_in.nc'
-    dsIn = _masks_to_int(dsIn)
-    write_netcdf(dsIn, inFileName)
-    outFileName = f'{tempdir}/ds_out.nc'
-
-    args = ['MpasCellCuller.x', inFileName, outFileName]
-
-    if dsMask is not None:
-        if not isinstance(dsMask, list):
-            dsMask = [dsMask]
-        for index, ds in enumerate(dsMask):
-            ds = _masks_to_int(ds)
-            fileName = f'{tempdir}/mask{index}.nc'
-            write_netcdf(ds, fileName)
-            args.extend(['-m', fileName])
-
-    if dsInverse is not None:
-        if not isinstance(dsInverse, list):
-            dsInverse = [dsInverse]
-        for index, ds in enumerate(dsInverse):
-            ds = _masks_to_int(ds)
-            fileName = f'{tempdir}/inverse{index}.nc'
-            write_netcdf(ds, fileName)
-            args.extend(['-i', fileName])
-
-    if dsPreserve is not None:
-        if not isinstance(dsPreserve, list):
-            dsPreserve = [dsPreserve]
-        for index, ds in enumerate(dsPreserve):
-            ds = _masks_to_int(ds)
-            fileName = f'{tempdir}/preserve{index}.nc'
-            write_netcdf(ds, fileName)
-            args.extend(['-p', fileName])
-
     if graphInfoFileName is not None:
         graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-    outDir = os.path.dirname(outFileName)
+    with TemporaryDirectory(dir=dir) as tempdir:
+        inFileName = f'{tempdir}/ds_in.nc'
+        dsIn = _masks_to_int(dsIn)
+        write_netcdf(dsIn, inFileName)
+        outFileName = f'{tempdir}/ds_out.nc'
 
-    check_call(args=args, logger=logger)
+        args = ['MpasCellCuller.x', inFileName, outFileName]
 
-    dsOut = xr.open_dataset(outFileName)
-    dsOut.load()
+        if dsMask is not None:
+            if not isinstance(dsMask, list):
+                dsMask = [dsMask]
+            for index, ds in enumerate(dsMask):
+                ds = _masks_to_int(ds)
+                fileName = f'{tempdir}/mask{index}.nc'
+                write_netcdf(ds, fileName)
+                args.extend(['-m', fileName])
 
-    if graphInfoFileName is not None:
-        shutil.copyfile(f'{outDir}/culled_graph.info', graphInfoFileName)
+        if dsInverse is not None:
+            if not isinstance(dsInverse, list):
+                dsInverse = [dsInverse]
+            for index, ds in enumerate(dsInverse):
+                ds = _masks_to_int(ds)
+                fileName = f'{tempdir}/inverse{index}.nc'
+                write_netcdf(ds, fileName)
+                args.extend(['-i', fileName])
+
+        if dsPreserve is not None:
+            if not isinstance(dsPreserve, list):
+                dsPreserve = [dsPreserve]
+            for index, ds in enumerate(dsPreserve):
+                ds = _masks_to_int(ds)
+                fileName = f'{tempdir}/preserve{index}.nc'
+                write_netcdf(ds, fileName)
+                args.extend(['-p', fileName])
+
+        check_call(args=args, logger=logger)
+
+        dsOut = xr.open_dataset(outFileName)
+        dsOut.load()
+        dsOut.close()
+
+        if graphInfoFileName is not None:
+            shutil.copyfile(f'{tempdir}/culled_graph.info', graphInfoFileName)
 
     return dsOut
 
