@@ -83,5 +83,5 @@ authors:
     family-names: Jaganathan
 repository-code: 'https://github.com/MPAS-Dev/MPAS-Tools'
 url: 'https://mpas-dev.github.io/MPAS-Tools/master/'
-version: 2.1.0
-date-released: '2026-08-20'
+version: 2.2.0
+date-released: '2026-10-23'
