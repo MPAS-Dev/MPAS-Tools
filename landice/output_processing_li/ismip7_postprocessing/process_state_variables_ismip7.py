@@ -96,8 +96,8 @@ def process_state_vars(files, tmp_file):
     inputfile_state_vars['uReconstructX_base'] = uxbase
     inputfile_state_vars['uReconstructY_base'] = uybase
 
-    inputfile_state_vars['upperSurface'] = np.maximum(
-        0.0, inputfile_state_vars['upperSurface'])
+    # upperSurface is not clamped at 0, so that orog = base + lithk holds in
+    # every cell after remapping
 
     floating_mask = (cellMask[:, :] & 4) / 4
     dynamic_mask = (cellMask[:, :] & 2) / 2
