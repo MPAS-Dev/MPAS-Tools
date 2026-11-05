@@ -311,11 +311,17 @@ def build_mapping_file(mali_mesh_file,
         "create_SCRIP_file_from_planar_rectangular_grid.py"
     )
     script_path = os.path.abspath(script_path)
-    args = ["python", script_path,
-            "--input", ismip7_grid_file,
-            "--scrip", ismip7_scripfile,
-            "--proj", ismip7_projection,
-            "--rank", "2"]
+    scrip_options = ["--input", ismip7_grid_file,
+                     "--scrip", ismip7_scripfile,
+                     "--proj", ismip7_projection,
+                     "--rank", "2"]
+    if os.path.isfile(script_path):
+        args = ["python", script_path] + scrip_options
+    else:
+        # The script has been turned into an entry point of the mpas_tools
+        # conda package; use that when the repo script is not found.
+        args = ["create_scrip_file_from_planar_rectangular_grid"] + \
+            scrip_options
 
     check_call(args)
 
