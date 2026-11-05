@@ -65,8 +65,9 @@ def process_state_vars(files, tmp_file):
         inputfile_state_vars = inputfile_state_vars.isel(Time=slice(1, None))
 
     # get the mesh description data
-    nLayer = inputfile_state_vars.sizes['nVertLevels']
-    nInterface = nLayer + 1  # inputfile_state_vars.sizes['nVertInterfaces']
+    # number of vertical interfaces (uReconstructX/Y, which are required, are
+    # on nVertInterfaces; the files may have no nVertLevels dimension)
+    nInterface = inputfile_state_vars.sizes['nVertInterfaces']
     cellMask = inputfile_state_vars['cellMask'][:, :]
     basalTemperature = inputfile_state_vars['basalTemperature'][:, :]
     betaSolve = inputfile_state_vars['betaSolve'][:, :]
