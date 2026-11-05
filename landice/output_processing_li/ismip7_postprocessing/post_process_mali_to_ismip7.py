@@ -213,6 +213,16 @@ def main():
              f"output filenames/metadata. Choices: {list(GROUP_METADATA.keys())}",
     )
     parser.add_argument(
+        "--reference_geoid",
+        dest="reference_geoid",
+        default="EIGEN-6C4",
+        help=(
+            "Value of the reference_geoid attribute written on deltag: "
+            "'EIGEN-6C4' (BedMachine, default), 'GL04C' (Bedmap), or "
+            "'custom, defined by ref_geoid variable'."
+        ),
+    )
+    parser.add_argument(
         "--ism_member_id",
         dest="ism_member_id",
         required=False,
@@ -354,6 +364,7 @@ def main():
             ismip7_grid_file,
             output_path,
             metadata,
+            reference_geoid=args.reference_geoid,
         )
         print("---Processing state file(s) complete---\n")
     else:

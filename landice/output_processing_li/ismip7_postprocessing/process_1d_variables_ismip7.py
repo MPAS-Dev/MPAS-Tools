@@ -18,7 +18,7 @@ from time_utils import (get_calendar, decimal_years, days_at_jan1,
 EXPECTED_VARIABLES = [
     'daysSinceStart', 'deltat', 'simulationStartTime',
     'totalIceVolume', 'volumeAboveFloatation',
-    'groundedIceArea', 'floatingIceArea',
+    'groundedIceArea', 'floatingIceArea', 'groundedIceVolume',
     'totalSfcMassBal', 'totalGroundedBasalMassBal',
     'totalFloatingBasalMassBal', 'totalCalvingFlux',
     'totalFaceMeltingFlux', 'groundingLineFlux',
@@ -201,6 +201,7 @@ def generate_output_1d_vars(files, output_path, metadata):
     vol = ds['totalIceVolume'].values
     vaf = ds['volumeAboveFloatation'].values
     gia = ds['groundedIceArea'].values
+    gvol = ds['groundedIceVolume'].values  # for land_ice_mass_grounded (limg)
     fia = ds['floatingIceArea'].values
 
     # read in flux variables over which yearly average will be taken
@@ -242,6 +243,7 @@ def generate_output_1d_vars(files, output_path, metadata):
     vol_snapshot = np.zeros(nt_state) * np.nan
     vaf_snapshot = np.zeros(nt_state) * np.nan
     gia_snapshot = np.zeros(nt_state) * np.nan
+    gvol_snapshot = np.zeros(nt_state) * np.nan
     fia_snapshot = np.zeros(nt_state) * np.nan
     days_snapshot = np.zeros(nt_state) * np.nan
     smb_avg = np.zeros(nt_flux) * np.nan
@@ -277,6 +279,7 @@ def generate_output_1d_vars(files, output_path, metadata):
         vol_snapshot[snapshot_idx] = vol[idx_snap]
         vaf_snapshot[snapshot_idx] = vaf[idx_snap]
         gia_snapshot[snapshot_idx] = gia[idx_snap]
+        gvol_snapshot[snapshot_idx] = gvol[idx_snap]
         fia_snapshot[snapshot_idx] = fia[idx_snap]
         days_snapshot[snapshot_idx] = daysSinceStart[idx_snap]
         snapshot_idx += 1
@@ -288,6 +291,7 @@ def generate_output_1d_vars(files, output_path, metadata):
     vol_snapshot = vol_snapshot[:snapshot_idx]
     vaf_snapshot = vaf_snapshot[:snapshot_idx]
     gia_snapshot = gia_snapshot[:snapshot_idx]
+    gvol_snapshot = gvol_snapshot[:snapshot_idx]
     fia_snapshot = fia_snapshot[:snapshot_idx]
     days_snapshot = days_snapshot[:snapshot_idx]
 
@@ -344,6 +348,11 @@ def generate_output_1d_vars(files, output_path, metadata):
     _write_state_var('limnsw', vaf_snapshot * 910, days_snapshot,
                      'land_ice_mass_not_displacing_sea_water', 'kg',
                      'Mass above floatation', **common)
+    # Grounded ice mass: requested by the ISMIP7 GIA protocol (Table 2) for
+    # simulations that include bedrock adjustment.
+    _write_state_var('limg', gvol_snapshot * 910, days_snapshot,
+                     'land_ice_mass_grounded', 'kg',
+                     'Grounded ice mass', **common)
     _write_state_var(
         'iareagr',
         gia_snapshot,

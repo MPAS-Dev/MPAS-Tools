@@ -36,6 +36,10 @@ REQUIRED_STATE_REMAPPING_VARIABLES = [
     'sftgif', 'sftgrf', 'sftflf',
 ]
 
+# Written only if present in the MALI output (runs with a GIA model such as
+# FastIsostasy or the 1D sea-level model that outputs geoidChange).
+OPTIONAL_STATE_REMAPPING_VARIABLES = ['geoidChange']
+
 
 def check_state_files(files):
     """
@@ -131,7 +135,14 @@ def process_state_vars(files, tmp_file):
             f"{missing}"
         )
 
-    output_state_vars = inputfile_state_vars[REQUIRED_STATE_REMAPPING_VARIABLES]
+    keep = list(REQUIRED_STATE_REMAPPING_VARIABLES)
+    for var in OPTIONAL_STATE_REMAPPING_VARIABLES:
+        if var in inputfile_state_vars:
+            keep.append(var)
+        else:
+            print(f"Optional variable {var} not found in state files; "
+                  "the corresponding ISMIP7 variable will not be written.")
+    output_state_vars = inputfile_state_vars[keep]
     output_state_vars.to_netcdf(tmp_file)
     output_state_vars.close()
     inputfile_state_vars.close()
@@ -155,6 +166,7 @@ def write_netcdf_2d_state_vars(
         ismip7_grid_file,
         output_path,
         metadata,
+        extra_var_attrs=None,
         calendar='gregorian'):
     """
     mali_var_name: variable name on MALI side
@@ -166,6 +178,8 @@ def write_netcdf_2d_state_vars(
     ismip7_grid_file: original ISMIP7 file
     exp: experiment name
     output_path: output path to which the output files will be saved
+    extra_var_attrs: optional dict of additional attributes to set on the
+        output variable (e.g., reference_geoid for deltag)
     """
 
     data_ismip7 = Dataset(ismip7_grid_file, 'r')
@@ -224,8 +238,9 @@ def write_netcdf_2d_state_vars(
                 with np.errstate(divide='ignore', invalid='ignore'):
                     var_mali[i, :, :] = var_mali[i, :, :] / mask
                 mask = (var_sftflf[i, :, :] > 0.99)
-            elif ismip7_var_name == 'topg':
-                mask = np.ones(var_mali.shape[1:])  # don't mask topg
+            elif ismip7_var_name in ('topg', 'deltag'):
+                # don't mask topg or the geoid anomaly (defined everywhere)
+                mask = np.ones(var_mali.shape[1:])
             else:
                 mask = var_sftgif[i, :, :]
             tmp = var_mali[i, :, :]
@@ -237,6 +252,9 @@ def write_netcdf_2d_state_vars(
 
     dataValues.standard_name = var_std_name
     dataValues.units = var_units
+    if extra_var_attrs:
+        for key, value in extra_var_attrs.items():
+            setattr(dataValues, key, value)
     timeValues.units = 'days since 1850-01-01'
     timeValues.calendar = 'standard'
     timeValues.standard_name = 'time'
@@ -256,7 +274,8 @@ def write_netcdf_2d_state_vars(
 
 
 def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
-                           output_path, metadata):
+                           output_path, metadata,
+                           reference_geoid='EIGEN-6C4'):
     """
     Full state-variable processing pipeline: validate, adjust, remap, write.
 
@@ -273,6 +292,10 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
     metadata : dict
         Submission metadata (exp, icesheet, authors, group, model, date, ...).
         time_range will be used as already computed by the main driver.
+    reference_geoid : str
+        Value of the reference_geoid attribute written on deltag:
+        'EIGEN-6C4' (BedMachine), 'GL04C' (Bedmap), or
+        'custom, defined by ref_geoid variable'.
     """
     metadata = metadata.copy()
 
@@ -297,6 +320,7 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
     print("Writing processed and remapped state fields to ISMIP7 file format.")
     generate_output_2d_state_vars(processed_and_remapped_file_state,
                                   ismip7_grid_file, output_path, metadata,
+                                  reference_geoid=reference_geoid,
                                   calendar=calendar)
 
     os.remove(tmp_file)
@@ -305,6 +329,7 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
 
 def generate_output_2d_state_vars(file_remapped_mali_state,
                                   ismip7_grid_file, output_path, metadata,
+                                  reference_geoid='EIGEN-6C4',
                                   calendar='gregorian'):
     """
     file_remapped_mali_state: output files on mali mesh remapped
@@ -351,6 +376,34 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
         output_path,
         metadata,
         calendar=calendar)
+
+    # ----------- deltag ------------------
+    # Anomaly in geoid height from the reference geoid (ISMIP7 GIA protocol,
+    # Table 1).  Only written if the MALI output includes geoidChange (a GIA
+    # model that computes geoid changes, e.g., FastIsostasy with SSH feedback
+    # or the 1D sea-level model).  MALI initializes geoidChange to zero at the
+    # start of the simulation, so it is the change relative to the initial
+    # geoid, which is the reference geoid of the bed dataset used (BedMachine:
+    # EIGEN-6C4).  refgeoid is not written because it is only required if the
+    # reference geoid is not EIGEN-6C4 or GL04C.
+    with Dataset(file_remapped_mali_state, 'r') as ds_check:
+        have_geoid_change = 'geoidChange' in ds_check.variables
+    if have_geoid_change:
+        print("* Writing deltag")
+        write_netcdf_2d_state_vars(
+            'geoidChange',
+            'deltag',
+            'geopotential_height_anomaly',
+            'm',
+            'Anomaly in geopotential height from reference geoid',
+            file_remapped_mali_state,
+            ismip7_grid_file,
+            output_path,
+            metadata,
+            extra_var_attrs={'reference_geoid': reference_geoid},
+            calendar=calendar)
+    else:
+        print("* Skipping deltag (geoidChange not in MALI output)")
 
     # ----------- hfgeoubed------------------
     # Note: even though this is a flux variable, we are taking a snapshot of it
