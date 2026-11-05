@@ -10,6 +10,9 @@ from subprocess import check_call
 import os
 from validate import validate_mali_files
 from output_naming import build_output_filename
+import datetime
+from time_utils import (get_calendar, decimal_years, days_at_jan1,
+                        days_to_ismip7_time)
 
 
 EXPECTED_FLUX_VARIABLES = [
@@ -109,7 +112,8 @@ def process_flux_vars(files, tmp_file):
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
                               var_units, var_varname, remapped_mali_flux_file,
-                              ismip7_grid_file, output_path, metadata):
+                              ismip7_grid_file, output_path, metadata,
+                              calendar='gregorian'):
     """
     mali_var_name: variable name on MALI side
     ismip7_var_name: variable name required by ISMIP7
@@ -132,27 +136,19 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]
-    refYear = int(simulationStartDate[0:4])
-    decYears = refYear + daysSinceStart / 365.0
-    years_flux = np.floor(decYears)
+    decYears = decimal_years(daysSinceStart, simulationStartDate, calendar)
+    years_flux = np.floor(decYears + 1.0e-6)
 
     # Flux outputs are annual means over each calendar year.
     # Bounds are Jan 1 of the previous year through Jan 1 of the year indexed.
-    timeBndsMin = (years_flux - refYear - 1.0) * 365.0
-    timeBndsMax = (years_flux - refYear) * 365.0
-    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
-    input_units = f'days since {simulationStartDate}'
-    output_units = 'days since 1850-01-01'
-    timeBndsMin = date2num(
-        num2date(timeBndsMin, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
-    timeBndsMax = date2num(
-        num2date(timeBndsMax, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
+    timeBndsMin = days_at_jan1(years_flux - 1, simulationStartDate, calendar)
+    timeBndsMax = days_at_jan1(years_flux, simulationStartDate, calendar)
+    # Convert from the MALI model-calendar time axis to Gregorian days since
+    # 1850-01-01
+    timeBndsMin = days_to_ismip7_time(timeBndsMin, simulationStartDate,
+                                      calendar)
+    timeBndsMax = days_to_ismip7_time(timeBndsMax, simulationStartDate,
+                                      calendar)
     if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
@@ -190,7 +186,14 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         tmp = var_mali[i, :, :]
         #tmp[mask == 0] = np.nan
         dataValues[i, :, :] = tmp
-        timeValues[i] = (timeBndsMin[i] + timeBndsMax[i]) / 2.0
+        # ISMIP7 convention for flux (FL) variables: the time coordinate is
+        # Jul 1 of the nominal (averaging) year, which is the year before the
+        # Jan 1 record that holds the annual mean.  The averaging interval is
+        # given by time_bounds.
+        nominal_year = int(years_flux[i]) - 1
+        timeValues[i] = date2num(datetime.datetime(nominal_year, 7, 1),
+                                 units='days since 1850-01-01',
+                                 calendar='standard')
         timebndsValues[i, 0] = timeBndsMin[i]
         timebndsValues[i, 1] = timeBndsMax[i]
 
@@ -222,7 +225,8 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
 
 
 def generate_output_2d_flux_vars(file_remapped_mali_flux,
-                                 ismip7_grid_file, output_path, metadata):
+                                 ismip7_grid_file, output_path, metadata,
+                                 calendar='gregorian'):
     """
     file_remapped_mali_flux: flux output file on mali mesh remapped
     onto the ismip7 grid
@@ -238,7 +242,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- libmassbffl ------------------
     print("* Writing libmassbffl")
@@ -247,7 +252,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath floating ice',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- libmassbfgr ------------------
     print("* Writing libmassbfgr")
@@ -256,7 +262,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath grounded ice',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- dlithkdt ------------------
     write_netcdf_2d_flux_vars('avgDhdt', 'dlithkdt',
@@ -264,7 +271,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'm s-1',
                               'Ice thickness imbalance',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- licalvf ------------------
     print("* Writing licalvf")
@@ -273,7 +281,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Calving flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- lifmassbf ------------------
     print("* Writing lifmassbf")
@@ -283,7 +292,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Ice front melt flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- ligroundf ------------------
     print("* Writing ligroundf")
@@ -292,7 +302,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Grounding line flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
 
 def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
@@ -318,6 +329,10 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
 
     check_flux_files(flux_files)
 
+    with xr.open_dataset(flux_files[0], decode_cf=False) as ds_first:
+        calendar = get_calendar(ds_first.attrs)
+    print(f"Model calendar: {calendar}")
+
     print("Preparing concatenated flux file for remapping.")
     tmp_flux_file = 'tmp_flux.nc'
     process_flux_vars(flux_files, tmp_flux_file)
@@ -333,7 +348,7 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
     print("Writing processed and remapped flux fields to ISMIP7 file format.")
     generate_output_2d_flux_vars(remapped_file_flux,
                                  ismip7_grid_file,
-                                 output_path, metadata)
+                                 output_path, metadata, calendar=calendar)
 
     #os.remove(tmp_flux_file)
     #os.remove(remapped_file_flux)

@@ -4,12 +4,15 @@ for ISMIP7 submissions from MALI globalStats output.
 """
 
 from netCDF4 import Dataset, num2date, date2num, default_fillvals
+import datetime
 import numpy as np
 import os
 import sys
 import xarray as xr
 from validate import validate_mali_files
 from output_naming import build_output_filename
+from time_utils import (get_calendar, decimal_years, days_at_jan1,
+                        days_to_ismip7_time)
 
 
 EXPECTED_VARIABLES = [
@@ -80,7 +83,15 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
         'time_bounds', 'f4', ('time', 'bnds'),
         fill_value=default_fillvals['f4'])
     var_out[:] = data_values
-    time_out[:] = (days_min + days_max) / 2.0
+    # ISMIP7 convention for flux (FL) variables: the time coordinate is
+    # Jul 1 of the nominal (averaging) year; the averaging interval is given
+    # by time_bounds.
+    nominal_years = [
+        num2date(d, units='days since 1850-01-01', calendar='standard').year
+        for d in np.atleast_1d(days_min)]
+    time_out[:] = date2num(
+        [datetime.datetime(y, 7, 1) for y in nominal_years],
+        units='days since 1850-01-01', calendar='standard')
     bnds_out[:, 0] = days_min
     bnds_out[:, 1] = days_max
     time_out.units = 'days since 1850-01-01'
@@ -136,9 +147,10 @@ def generate_output_1d_vars(files, output_path, metadata):
             "is not on Jan. 1."
         )
     refYear = int(simulationStartDate[0:4])
-    decYears = refYear + daysSinceStart / 365.0
+    calendar = get_calendar(ds.attrs)
+    decYears = decimal_years(daysSinceStart, simulationStartDate, calendar)
     endYr = decYears[-1]
-    if endYr != np.round(endYr):
+    if not np.isclose(endYr, np.round(endYr), rtol=0.0, atol=1.0e-6):
         ds.close()
         sys.exit("Error: end year not an even year in globalStats file.")
 
@@ -161,7 +173,7 @@ def generate_output_1d_vars(files, output_path, metadata):
     # time coordinates in these files uses units of days since a
     # reference date,
     # and it does not use a year indexing convention at all.
-    if decYears[0] == np.round(decYears[0]):
+    if np.isclose(decYears[0], np.round(decYears[0]), rtol=0.0, atol=1.0e-6):
         # The initial time level will only be on an even year (Jan. 1)
         # for the hist run.  In that case, we want to include that initial
         # even year in the state processing.  We also want the state snapshot
@@ -305,30 +317,20 @@ def generate_output_1d_vars(files, output_path, metadata):
         cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
         fmfx_avg[i] = np.nansum(fmfxi * dti) / np.nansum(dti)
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
-        days_min[i] = (years_flux[i] - refYear) * 365.0
-        days_max[i] = (years_flux[i] + 1.0 - refYear) * 365.0
+        days_min[i] = days_at_jan1(years_flux[i], simulationStartDate,
+                                   calendar)[0]
+        days_max[i] = days_at_jan1(years_flux[i] + 1, simulationStartDate,
+                                   calendar)[0]
 
         if decYears[ind_avg][-1] == endYr:
             break
 
-    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
-    input_units = f'days since {simulationStartDate}'
-    output_units = 'days since 1850-01-01'
-    days_snapshot = date2num(
-        num2date(days_snapshot, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
-    days_min = date2num(
-        num2date(days_min, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
-    days_max = date2num(
-        num2date(days_max, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
+    # Convert from the MALI model-calendar time axis to Gregorian days since
+    # 1850-01-01
+    days_snapshot = days_to_ismip7_time(days_snapshot, simulationStartDate,
+                                        calendar)
+    days_min = days_to_ismip7_time(days_min, simulationStartDate, calendar)
+    days_max = days_to_ismip7_time(days_max, simulationStartDate, calendar)
 
     # shared keyword arguments for both writer helpers
     common = dict(

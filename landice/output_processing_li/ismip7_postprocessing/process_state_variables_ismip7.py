@@ -10,6 +10,7 @@ import os
 from subprocess import check_call
 from validate import validate_mali_files
 from output_naming import build_output_filename
+from time_utils import get_calendar, days_to_ismip7_time
 
 
 EXPECTED_STATE_VARIABLES = [
@@ -140,7 +141,8 @@ def write_netcdf_2d_state_vars(
         remapped_mali_outputfile,
         ismip7_grid_file,
         output_path,
-        metadata):
+        metadata,
+        calendar='gregorian'):
     """
     mali_var_name: variable name on MALI side
     ismip7_var_name: variable name required by ISMIP7
@@ -162,17 +164,11 @@ def write_netcdf_2d_state_vars(
     simulationStartTime = data.variables['simulationStartTime'][:].tobytes(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
-    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
+    # Convert from the MALI model-calendar time axis to Gregorian days since
+    # 1850-01-01
     daysSinceStart = data.variables['daysSinceStart'][:]
-    daysSinceStart = date2num(
-        num2date(
-            daysSinceStart,
-            units=f'days since {simulationStartDate}',
-            calendar='noleap',
-        ),
-        units='days since 1850-01-01',
-        calendar='standard',
-    )
+    daysSinceStart = days_to_ismip7_time(daysSinceStart, simulationStartDate,
+                                         calendar)
     var_sftgif = data.variables['sftgif'][:, :, :]
     var_sftgrf = data.variables['sftgrf'][:, :, :]
     var_sftflf = data.variables['sftflf'][:, :, :]
@@ -269,6 +265,10 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
 
     check_state_files(state_files)
 
+    with xr.open_dataset(state_files[0], decode_cf=False) as ds_first:
+        calendar = get_calendar(ds_first.attrs)
+    print(f"Model calendar: {calendar}")
+
     print("Calculating needed state file adjustments.")
     tmp_file = "tmp_state.nc"
     process_state_vars(state_files, tmp_file)
@@ -283,14 +283,16 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
 
     print("Writing processed and remapped state fields to ISMIP7 file format.")
     generate_output_2d_state_vars(processed_and_remapped_file_state,
-                                  ismip7_grid_file, output_path, metadata)
+                                  ismip7_grid_file, output_path, metadata,
+                                  calendar=calendar)
 
     os.remove(tmp_file)
     os.remove(processed_and_remapped_file_state)
 
 
 def generate_output_2d_state_vars(file_remapped_mali_state,
-                                  ismip7_grid_file, output_path, metadata):
+                                  ismip7_grid_file, output_path, metadata,
+                                  calendar='gregorian'):
     """
     file_remapped_mali_state: output files on mali mesh remapped
     on the ismip7 grid
@@ -304,21 +306,24 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
     write_netcdf_2d_state_vars('thickness', 'lithk', 'land_ice_thickness',
                                'm', 'Ice thickness',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- orog ------------------
     print("* Writing orog")
     write_netcdf_2d_state_vars('upperSurface', 'orog', 'surface_altitude', 'm',
                                'Surface elevation',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- base ------------------
     print("* Writing base")
     write_netcdf_2d_state_vars('lowerSurface', 'base', 'base_altitude', 'm',
                                'Base elevation',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- topg ------------------
     print("* Writing topg")
@@ -331,7 +336,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
         file_remapped_mali_state,
         ismip7_grid_file,
         output_path,
-        metadata)
+        metadata,
+        calendar=calendar)
 
     # ----------- hfgeoubed------------------
     # Note: even though this is a flux variable, we are taking a snapshot of it
@@ -349,7 +355,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_surface_x_velocity',
                                'm s-1', 'Surface velocity in x',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # -----------yxvelsurf ------------------
     print("* Writing yvelsurf")
@@ -357,7 +364,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_surface_y_velocity',
                                'm s-1', 'Surface velocity in x',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- xvelbase ------------------
     print
@@ -365,7 +373,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_basal_x_velocity',
                                'm s-1', 'Basal velocity in x',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- yvelbase ------------------
     print("* Writing yvelbase")
@@ -373,7 +382,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_basal_y_velocity',
                                'm s-1', 'Basal velocity in y',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- zvelsurf & zvelbase ------------------
     # ISMIP7 requires these variables, but MALI does not output them.
@@ -385,7 +395,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_vertical_mean_x_velocity',
                                'm s-1', 'Mean velocity in x',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- yvelmean ------------------
     print("* Writing yvelmean")
@@ -393,7 +404,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_vertical_mean_y_velocity',
                                'm s-1', 'Mean velocity in y',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- litemptop ------------------
     print("* Writing litemptop")
@@ -401,7 +413,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'temperature_at_top_of_ice_sheet_model', 'K',
                                'Surface temperature',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- litempbotgr ------------------
     print("* Writing litempbotgr")
@@ -409,7 +422,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'temperature_at_base_of_ice_sheet_model', 'K',
                                'Basal temperature beneath grounded ice sheet',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- litempbotfl ------------------
     print("* Writing litempbotfl")
@@ -417,7 +431,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'temperature_at_base_of_ice_sheet_model', 'K',
                                'Basal temperature beneath floating ice shelf',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- strbasemag ------------------
     print("* Writing strbasemag")
@@ -425,7 +440,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_basal_drag', 'Pa',
                                'Basal drag',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- sftgif ------------------
     print("* Writing sftgif")
@@ -433,7 +449,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_area_fraction', '1',
                                'Land ice area fraction',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- sftgrf ------------------
     print("* Writing sftgrf")
@@ -441,7 +458,8 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'grounded_ice_sheet_area_fraction', '1',
                                'Grounded ice sheet area fraction',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
 
     # ----------- sftflf ------------------
     print("* Writing sftflf")
@@ -449,4 +467,5 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'floating_ice_shelf_area_fraction', '1',
                                'Floating ice shelf area fraction',
                                file_remapped_mali_state,
-                               ismip7_grid_file, output_path, metadata)
+                               ismip7_grid_file, output_path, metadata,
+                               calendar=calendar)
