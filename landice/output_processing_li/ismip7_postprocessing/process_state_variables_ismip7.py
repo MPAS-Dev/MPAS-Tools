@@ -11,7 +11,12 @@ from subprocess import check_call
 from validate import validate_mali_files
 from output_naming import build_output_filename
 from time_utils import get_calendar, days_to_ismip7_time
+from netcdf_utils import to_masked, zero_where_invalid
 
+
+# ISMIP7 variables for which missing values are not permitted: where there is
+# no ice the value is 0.
+ZERO_WHERE_NO_ICE_VARIABLES = ('lithk', 'sftgif', 'sftgrf', 'sftflf')
 
 EXPECTED_STATE_VARIABLES = [
     'daysSinceStart', 'simulationStartTime',
@@ -132,6 +137,14 @@ def process_state_vars(files, tmp_file):
     inputfile_state_vars.close()
 
 
+def _finalize(values, ismip7_var_name):
+    """Fill value for missing data, or 0 for variables that must be 0 where
+    there is no ice."""
+    if ismip7_var_name in ZERO_WHERE_NO_ICE_VARIABLES:
+        return zero_where_invalid(values)
+    return to_masked(values)
+
+
 def write_netcdf_2d_state_vars(
         mali_var_name,
         ismip7_var_name,
@@ -197,7 +210,7 @@ def write_netcdf_2d_state_vars(
     timeValues[:] = daysSinceStart
     for i in range(timeSteps):
         if ismip7_var_name == 'sftgif':
-            dataValues[i, :, :] = var_mali[i, :, :]
+            dataValues[i, :, :] = _finalize(var_mali[i, :, :], ismip7_var_name)
         else:
             if ismip7_var_name == 'litempbotgr':
                 # todo: get masking division to work right for litempbotgr and litempbotfl
@@ -217,7 +230,7 @@ def write_netcdf_2d_state_vars(
                 mask = var_sftgif[i, :, :]
             tmp = var_mali[i, :, :]
             tmp[mask == 0] = np.nan
-            dataValues[i, :, :] = tmp
+            dataValues[i, :, :] = _finalize(tmp, ismip7_var_name)
 
     xValues[:] = var_x
     yValues[:] = var_y

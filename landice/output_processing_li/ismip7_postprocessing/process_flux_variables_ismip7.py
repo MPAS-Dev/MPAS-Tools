@@ -10,6 +10,7 @@ from subprocess import check_call
 import os
 from validate import validate_mali_files
 from output_naming import build_output_filename
+from netcdf_utils import zero_where_invalid
 import datetime
 from time_utils import (get_calendar, decimal_years, days_at_jan1,
                         days_to_ismip7_time)
@@ -185,7 +186,9 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         #mask = data.variables['ice_mask'][i, :, :]
         tmp = var_mali[i, :, :]
         #tmp[mask == 0] = np.nan
-        dataValues[i, :, :] = tmp
+        # all ISMIP7 2D flux variables must be 0 (not missing) where there is
+        # no ice
+        dataValues[i, :, :] = zero_where_invalid(tmp)
         # ISMIP7 convention for flux (FL) variables: the time coordinate is
         # Jul 1 of the nominal (averaging) year, which is the year before the
         # Jan 1 record that holds the annual mean.  The averaging interval is
