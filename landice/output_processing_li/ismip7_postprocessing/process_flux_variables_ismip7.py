@@ -9,7 +9,7 @@ import numpy as np
 from subprocess import check_call
 import os
 from validate import validate_mali_files
-from gl_flux_from_restart_ismip7 import gl_flux_from_restarts
+from gl_flux_thickness_fix_ismip7 import correct_gl_flux
 from output_naming import build_output_filename
 from netcdf_utils import to_masked, zero_where_invalid
 import datetime
@@ -48,7 +48,7 @@ def check_flux_files(files):
 
 
 def process_flux_vars(files, tmp_file, input_file_mesh=None,
-                      gl_restart_files=None):
+                      gl_restart_files=None, fix_gl_flux=False):
     """
     Prepare flux files into a temporary file for remapping.
     This is very simple, because flux variables are already
@@ -63,9 +63,11 @@ def process_flux_vars(files, tmp_file, input_file_mesh=None,
     input_file_mesh : str, optional
         MALI file with the time-invariant basalHeatFlux, used for hfgeoubed.
     gl_restart_files : list of str, optional
-        If given, avgGroundingLineFlux is replaced by an approximation
-        computed from restart files (for runs whose
-        native avgGroundingLineFlux is unreliable).
+        Used only with fix_gl_flux: restart files whose thickness is
+        averaged with the flux-record thickness.
+    fix_gl_flux : bool
+        If True, undo the division by grounded-cell thickness in
+        avgGroundingLineFlux (for runs made with older MALI versions).
     """
     ds_flux = xr.open_mfdataset(files, combine='nested',
                                 concat_dim='Time',
@@ -99,15 +101,19 @@ def process_flux_vars(files, tmp_file, input_file_mesh=None,
 
     ds_flux['avgCalvingFlux'] = -1.0 * ds_flux['avgCalvingFlux']  # flip sign of calving flux to match ISMIP7 convention
     ds_flux['avgFaceMeltFlux'] = -1.0 * ds_flux['avgFaceMeltFlux']  # flip sign of face melt flux to match ISMIP7 convention
-    if gl_restart_files is not None:
+    if fix_gl_flux:
         if input_file_mesh is None:
-            raise ValueError("--input_mesh is required to approximate "
-                             "ligroundf from restart files.")
-        print("Replacing avgGroundingLineFlux with an approximation from "
-              "restart snapshots.")
-        gl = gl_flux_from_restarts(gl_restart_files, input_file_mesh,
-                                   ds_flux['daysSinceStart'].values)
-        print("Approximate grounding-line flux min, max (kg m-2 s-1): ",
+            raise ValueError("--input_mesh is required to correct "
+                             "ligroundf.")
+        if 'thickness' not in ds_flux:
+            raise ValueError("thickness is required in the flux files to "
+                             "correct ligroundf.")
+        print("Correcting avgGroundingLineFlux for division by thickness.")
+        gl = correct_gl_flux(ds_flux['avgGroundingLineFlux'].values,
+                             ds_flux['thickness'].values,
+                             ds_flux['daysSinceStart'].values,
+                             input_file_mesh, gl_restart_files)
+        print("Corrected grounding-line flux min, max (kg m-2 s-1): ",
               np.nanmin(gl), np.nanmax(gl))
         ds_flux['avgGroundingLineFlux'] = xr.DataArray(
             gl, dims=('Time', 'nCells'))
@@ -391,7 +397,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
 
 def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
                           output_path, metadata, input_file_mesh=None,
-                          gl_restart_files=None):
+                          gl_restart_files=None, fix_gl_flux=False):
     """
     Full flux-variable processing pipeline:
     validate, concatenate, remap, write.
@@ -411,8 +417,10 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
     input_file_mesh : str, optional
         MALI file with basalHeatFlux, used for hfgeoubed.
     gl_restart_files : list of str, optional
-        Restart files; if given, ligroundf is approximated from them
-        instead of using the native avgGroundingLineFlux.
+        Restart files whose thickness is used when fix_gl_flux is True.
+    fix_gl_flux : bool
+        Correct the native avgGroundingLineFlux for the old division by
+        grounded-cell thickness.
     """
     metadata = metadata.copy()
 
@@ -425,7 +433,7 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
     print("Preparing concatenated flux file for remapping.")
     tmp_flux_file = 'tmp_flux.nc'
     process_flux_vars(flux_files, tmp_flux_file, input_file_mesh,
-                      gl_restart_files)
+                      gl_restart_files, fix_gl_flux)
 
     print("Remapping flux file.")
     remapped_file_flux = 'remapped_flux.nc'

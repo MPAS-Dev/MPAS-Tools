@@ -202,21 +202,20 @@ def main():
         ),
     )
     parser.add_argument(
-        "--approx_ligroundf_from_restart",
-        dest="approx_ligroundf",
+        "--fix_ligroundf_thickness_division",
+        dest="fix_ligroundf",
         action="store_true",
         default=False,
         help=(
-            "Fallback for runs whose native avgGroundingLineFlux is "
-            "unreliable (older MALI versions divided it by the ice "
-            "thickness, giving huge values at thin ice): approximate "
-            "ligroundf from restart snapshots (normalVelocity, thickness, "
-            "cellMask; layerThicknessFractions from --input_mesh) instead "
-            "of the time-averaged native field. For each output year, the "
-            "mean over all restarts in that year is used, so this is an "
-            "approximation (better with more frequent restarts). Requires "
-            "--input_mesh and applies to the 'flux' set. Uses --restart_dir "
-            "and --ligroundf_restart_pattern. Off by default."
+            "Fallback for runs made with an older MALI version whose "
+            "avgGroundingLineFlux was divided by the grounded-cell thickness "
+            "(huge values at thin ice). Undoes the division, approximately: "
+            "flux * thickness * dvEdge / areaCell, using the mean of the "
+            "thickness in the flux files and in any restart files within "
+            "each output period. Cells beyond +/-10 kg m-2 s-1 (not "
+            "recoverable) are set to 0. Requires --input_mesh and applies to "
+            "the 'flux' set. Restarts are looked up in --restart_dir with "
+            "--ligroundf_restart_pattern (optional). Off by default."
         ),
     )
     parser.add_argument(
@@ -226,8 +225,8 @@ def main():
         default='rst.*.nc',
         help=(
             "Filename pattern within --restart_dir for the restart files "
-            "used by --approx_ligroundf_from_restart (default: 'rst.*.nc', "
-            "i.e. all restarts)."
+            "whose thickness is used by --fix_ligroundf_thickness_division "
+            "(default: 'rst.*.nc', i.e. all restarts)."
         ),
     )
     parser.add_argument(
@@ -450,21 +449,21 @@ def main():
         print("\n---Processing flux file(s)---")
         flux_files = sorted(glob.glob(flux_glob))
         gl_restart_files = None
-        if args.approx_ligroundf:
+        if args.fix_ligroundf:
             if not args.input_file_mesh:
                 raise ValueError(
                     "--input_mesh is required with "
-                    "--approx_ligroundf_from_restart.")
+                    "--fix_ligroundf_thickness_division.")
             restart_dir = args.restart_dir or os.path.dirname(
                 os.path.abspath(args.mali_output_dir.rstrip('/')))
             gl_restart_files = sorted(glob.glob(
                 os.path.join(restart_dir, args.ligroundf_restart_pattern)))
             if not gl_restart_files:
-                raise FileNotFoundError(
-                    "--approx_ligroundf_from_restart: no restart files "
-                    f"match {restart_dir}/{args.ligroundf_restart_pattern}")
-            print("NOTE: ligroundf is approximated from restart snapshots, "
-                  "not the time-averaged native flux.")
+                print("No restart files match "
+                      f"{restart_dir}/{args.ligroundf_restart_pattern}; "
+                      "using only the thickness in the flux files.")
+            print("NOTE: ligroundf is corrected approximately for the old "
+                  "division by thickness.")
         process_flux_pipeline(
             flux_files,
             mapping_file,
@@ -473,6 +472,7 @@ def main():
             metadata,
             input_file_mesh=args.input_file_mesh,
             gl_restart_files=gl_restart_files,
+            fix_gl_flux=args.fix_ligroundf,
         )
         print("---Processing flux file(s) complete---\n")
     else:
