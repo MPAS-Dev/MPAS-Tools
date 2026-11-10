@@ -3,13 +3,15 @@ This script has functions that are needed to post-process and write flux
 output variables from ISMIP7 simulations.
 """
 
-from netCDF4 import Dataset, num2date, date2num, default_fillvals
+from netCDF4 import Dataset, default_fillvals
 import xarray as xr
 import numpy as np
 from subprocess import check_call
 import os
 from validate import validate_mali_files
 from output_naming import build_output_filename
+from mali_time import (get_calendar, decimal_years, year_start_days,
+                       to_days_since_1850)
 
 
 EXPECTED_FLUX_VARIABLES = [
@@ -132,27 +134,20 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]
-    refYear = int(simulationStartDate[0:4])
-    decYears = refYear + daysSinceStart / 365.0
-    years_flux = np.floor(decYears)
+    calendar = get_calendar(data)
+    decYears = decimal_years(daysSinceStart, simulationStartDate, calendar)
+    years_flux = np.floor(decYears + 1.0e-8)
 
     # Flux outputs are annual means over each calendar year.
     # Bounds are Jan 1 of the previous year through Jan 1 of the year indexed.
-    timeBndsMin = (years_flux - refYear - 1.0) * 365.0
-    timeBndsMax = (years_flux - refYear) * 365.0
-    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
-    input_units = f'days since {simulationStartDate}'
-    output_units = 'days since 1850-01-01'
-    timeBndsMin = date2num(
-        num2date(timeBndsMin, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
-    timeBndsMax = date2num(
-        num2date(timeBndsMax, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
+    timeBndsMin = year_start_days(
+        years_flux - 1, simulationStartDate, calendar)
+    timeBndsMax = year_start_days(years_flux, simulationStartDate, calendar)
+    # Convert from the MALI time axis to days since 1850-01-01
+    timeBndsMin = to_days_since_1850(
+        timeBndsMin, simulationStartDate, calendar)
+    timeBndsMax = to_days_since_1850(
+        timeBndsMax, simulationStartDate, calendar)
     if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
