@@ -28,6 +28,9 @@ REQUIRED_FLUX_REMAPPING_VARIABLES = [
     'avgSMBFlux', 'avgFloatingBMBFlux', 'avgGroundedBMBFlux',
     'avgDhdt', 'avgCalvingFlux', 'avgFaceMeltFlux',
     'avgGroundingLineFlux',
+    # sftgrf/sftflf are used only to set the basal mass balance fluxes to 0
+    # where there is no grounded/floating ice
+    'sftgrf', 'sftflf',
     # masks not currently used - see note below in process_flux_vars
     #'ice_mask', 'floating_mask', 'dynamic_mask', 'grounded_mask',
     #'gl_mask'
@@ -78,6 +81,13 @@ def process_flux_vars(files, tmp_file):
     #ds_flux['dynamic_mask'] = (ds_flux['cellMask'][:, :] & 2) / 2
     #ds_flux['grounded_mask'] = (ds_flux['cellMask'][:, :] * 0 + 1) - ds_flux['floating_mask']
     #ds_flux['gl_mask'] = (ds_flux['cellMask'][:, :] & 256) / 256
+
+    # same definitions as in the state processing
+    cell_mask = ds_flux['cellMask'][:, :]
+    floating = (cell_mask & 4) / 4
+    dynamic = (cell_mask & 2) / 2
+    ds_flux['sftflf'] = floating * dynamic
+    ds_flux['sftgrf'] = (1.0 - floating) * dynamic
 
     ds_flux['avgCalvingFlux'] = -1.0 * ds_flux['avgCalvingFlux']  # flip sign of calving flux to match ISMIP7 convention
     ds_flux['avgFaceMeltFlux'] = -1.0 * ds_flux['avgFaceMeltFlux']  # flip sign of face melt flux to match ISMIP7 convention
@@ -156,6 +166,15 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         return
     var_mali = data.variables[mali_var_name][:, :, :]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.nan
+    # Basal mass balance fluxes must be exactly 0 where the corresponding area
+    # fraction (as written to the sftgrf/sftflf files, in float32) is 0.
+    bmb_mask_name = {'libmassbfgr': 'sftgrf',
+                     'libmassbffl': 'sftflf'}.get(ismip7_var_name)
+    if bmb_mask_name is not None:
+        bmb_mask = np.asarray(data.variables[bmb_mask_name][:, :, :],
+                              dtype=np.float32)
+        bmb_mask = np.where(np.abs(bmb_mask) > 1e30, np.float32(0.0),
+                            bmb_mask)
     timeSteps, latN, lonN = np.shape(var_mali)
 
     output_filename = build_output_filename(
@@ -186,6 +205,8 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         #mask = data.variables['ice_mask'][i, :, :]
         tmp = var_mali[i, :, :]
         #tmp[mask == 0] = np.nan
+        if bmb_mask_name is not None:
+            tmp = np.where(bmb_mask[i, :, :] > 0, tmp, 0.0)
         # all ISMIP7 2D flux variables must be 0 (not missing) where there is
         # no ice
         dataValues[i, :, :] = zero_where_invalid(tmp)

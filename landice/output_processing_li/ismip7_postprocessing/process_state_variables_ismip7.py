@@ -84,11 +84,6 @@ def process_state_vars(files, tmp_file, input_file_mesh=None):
     basalTemperature = inputfile_state_vars['basalTemperature'][:, :]
     betaSolve = inputfile_state_vars['betaSolve'][:, :]
 
-    inputfile_state_vars['litempbotfl'] = basalTemperature * \
-        (cellMask[:, :] & 4) / 4
-    inputfile_state_vars['litempbotgr'] = basalTemperature * \
-        (1 - (cellMask[:, :] & 4) / 4)
-
     uxsurf = inputfile_state_vars['uReconstructX'][:, :, 0]
     uysurf = inputfile_state_vars['uReconstructY'][:, :, 0]
     uxbase = inputfile_state_vars['uReconstructX'][:, :, nInterface - 1]
@@ -99,7 +94,22 @@ def process_state_vars(files, tmp_file, input_file_mesh=None):
     inputfile_state_vars['uReconstructY_base'] = uybase
 
     # upperSurface is not clamped at 0, so that orog = base + lithk holds in
-    # every cell after remapping
+    # every cell after remapping.  Non-dynamic ice (e.g., thin ice at the
+    # margin) is not counted as ice (sftgif is the dynamic mask), so its
+    # thickness is dropped from lithk and orog alike.
+    dynamic_ice = (cellMask[:, :] & 2) / 2
+    inputfile_state_vars['thickness'] = \
+        inputfile_state_vars['thickness'] * dynamic_ice
+    # ISMIP7 requires orog = base = 0 in the open ocean (no ice and bed below
+    # sea level, which is 0), whereas MALI's lowerSurface is the bed there.
+    # This has to be done on the native mesh, before remapping.
+    open_ocean = (dynamic_ice == 0) & \
+        (inputfile_state_vars['bedTopography'] < 0.0)
+    inputfile_state_vars['lowerSurface'] = \
+        inputfile_state_vars['lowerSurface'].where(~open_ocean, 0.0)
+    inputfile_state_vars['upperSurface'] = \
+        inputfile_state_vars['lowerSurface'] + \
+        inputfile_state_vars['thickness']
 
     floating_mask = (cellMask[:, :] & 4) / 4
     dynamic_mask = (cellMask[:, :] & 2) / 2
@@ -112,13 +122,19 @@ def process_state_vars(files, tmp_file, input_file_mesh=None):
     # dynamic ice
     inputfile_state_vars['sftgif'] = dynamic_mask
 
-    # Thermal forcing at the ice draft, only for floating ice.  Like
-    # litempbotfl, it is area-weighted here and divided by sftflf after
-    # remapping.
+    # Basal temperature is weighted by the same masks as sftgrf/sftflf so that
+    # dividing by the remapped masks after remapping gives the mean over the
+    # grounded (floating) ice only.
+    inputfile_state_vars['litempbotfl'] = \
+        basalTemperature * floating_mask * dynamic_mask
+    inputfile_state_vars['litempbotgr'] = \
+        basalTemperature * grounded_mask * dynamic_mask
+
+    # Thermal forcing at the ice draft is defined throughout the domain
+    # (fill_policy outside_domain), so it is remapped unweighted.
     if 'ismip6shelfMelt_TFdraft' in inputfile_state_vars:
-        inputfile_state_vars['thdrflf'] = (
-            inputfile_state_vars['ismip6shelfMelt_TFdraft'] *
-            floating_mask * dynamic_mask)
+        inputfile_state_vars['thdrflf'] = \
+            inputfile_state_vars['ismip6shelfMelt_TFdraft']
 
     # hfgeoubed is time-independent and only available in the input (mesh)
     # file.  ISMIP7 wants a time dimension, so broadcast it to the state times.
@@ -247,36 +263,38 @@ def write_netcdf_2d_state_vars(
     timeValues = dataOut.createVariable('time', 'f4', ('time',),
                                         fill_value=default_fillvals['f4'])
     timeValues[:] = daysSinceStart
+    # Masks as they are written (float32), so the zero/missing patterns here
+    # match exactly what a checker reading the files will compare.
+    def _mask(arr):
+        arr = np.asarray(arr, dtype=np.float32)
+        return np.where(np.abs(arr) > 1e30, np.float32(0.0), arr)
+
+    # variable -> (mask the variable is area-weighted by before remapping, or
+    # None; mask defining where it is defined, or None for the whole domain).
+    weight_name = {'litempbotgr': 'sftgrf', 'litempbotfl': 'sftflf',
+                   'litempavg': 'sftgif'}.get(ismip7_var_name)
+    # orog, base, topg, deltag, hfgeoubed, thdrflf are defined throughout the
+    # computational domain (missing only outside it), incl. where no ice.
+    whole_domain = ismip7_var_name in ('orog', 'base', 'topg', 'deltag',
+                                       'hfgeoubed', 'thdrflf')
+    weights = {'sftgrf': var_sftgrf, 'sftflf': var_sftflf,
+               'sftgif': var_sftgif}
     for i in range(timeSteps):
         if ismip7_var_name == 'sftgif':
             dataValues[i, :, :] = _finalize(var_mali[i, :, :], ismip7_var_name)
+            continue
+        tmp = var_mali[i, :, :]
+        if weight_name is not None:
+            w = weights[weight_name][i, :, :]
+            with np.errstate(divide='ignore', invalid='ignore'):
+                tmp = tmp / w
+            defined = _mask(w) > 0
+        elif whole_domain:
+            defined = np.ones(tmp.shape, dtype=bool)
         else:
-            if ismip7_var_name == 'litempbotgr':
-                # todo: get masking division to work right for litempbotgr and litempbotfl
-                # for now, only calculate these var for full grounded or full floating cells
-                mask = (var_sftgrf[i, :, :])
-                with np.errstate(divide='ignore', invalid='ignore'):
-                    var_mali[i, :, :] = var_mali[i, :, :] / mask
-                mask = (var_sftgrf[i, :, :] > 0.99)
-            elif ismip7_var_name == 'litempavg':
-                # area-weighted by ice mask before remapping; undo here
-                mask = var_sftgif[i, :, :]
-                with np.errstate(divide='ignore', invalid='ignore'):
-                    var_mali[i, :, :] = var_mali[i, :, :] / mask
-            elif ismip7_var_name in ('litempbotfl', 'thdrflf'):
-                mask = (var_sftflf[i, :, :])
-                with np.errstate(divide='ignore', invalid='ignore'):
-                    var_mali[i, :, :] = var_mali[i, :, :] / mask
-                mask = (var_sftflf[i, :, :] > 0.99)
-            elif ismip7_var_name in ('topg', 'deltag', 'hfgeoubed'):
-                # don't mask topg, the geoid anomaly or geothermal heat flux
-                # (defined everywhere)
-                mask = np.ones(var_mali.shape[1:])
-            else:
-                mask = var_sftgif[i, :, :]
-            tmp = var_mali[i, :, :]
-            tmp[mask == 0] = np.nan
-            dataValues[i, :, :] = _finalize(tmp, ismip7_var_name)
+            defined = _mask(var_sftgif[i, :, :]) > 0
+        tmp = np.where(defined, tmp, np.nan)
+        dataValues[i, :, :] = _finalize(tmp, ismip7_var_name)
 
     xValues[:] = var_x
     yValues[:] = var_y
