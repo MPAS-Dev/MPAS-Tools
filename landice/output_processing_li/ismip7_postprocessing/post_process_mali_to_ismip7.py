@@ -19,7 +19,14 @@ https://github.com/ismip/ISM_SimulationChecker/blob/main/conventions/ISMIP7_vari
 https://www.ismip.org/research/ismip7
 
 Example usage from testing on GrIS production ensemble:
-python post_process_mali_to_ismip7.py -o /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/postprocessing --icesheet GrIS --res 01 --group DOE -m /global/cfs/cdirs/fanssie/MALI_projects/ISMIP7/GIS/initial_condition/20261029/GIS_1to10km_r03_20260925_after_8yr-iter-relax_basicFields2.nc -s "output_2d_*.nc" -f "output_2d_*.nc" -i /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/ocx/output -e C011
+python post_process_mali_to_ismip7.py -o /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/postprocessing --icesheet GrIS --res 01 --group DOE -m /global/cfs/cdirs/fanssie/MALI_projects/ISMIP7/GIS/initial_condition/20261029/GIS_1to10km_r03_20260925_after_8yr-iter-relax_basicFields2.nc -s "output_2d_*.nc" -f "output_2d_*.nc" -i /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/ocx/output
+
+The experiment is determined from the name of the run directory (the parent of
+the --mali_output_dir directory), which must be '<experiment>_<ESM>', e.g.
+'historical_CESM2-WACCM' or 'ssp126_MRI-ESM2-0', or just 'ocx'.  The name is
+matched to experiments.csv, which gives the set counter (e.g. C001) used in the
+output file names and output subdirectory.  Use --run_name to override the
+directory name.
 """
 
 import argparse
@@ -30,7 +37,6 @@ from datetime import datetime
 
 from grid_and_mapping import (
     build_mapping_file,
-    check_exp_name,
     check_res,
     create_ismip7_grid_file,
     CRS_DICT,
@@ -66,27 +72,62 @@ DEFAULT_FORCING_MEMBER_ID = 'f001'
 EXPERIMENTS_CSV = os.path.join(os.path.dirname(__file__), 'experiments.csv')
 
 
-def _load_experiment_info(set_counter):
-    """Load one experiment record from experiments.csv by set counter."""
+# run directory experiment names that differ from experiments.csv
+EXPERIMENT_ALIASES = {'ctrl': 'ctrl2015'}
+
+
+def _read_experiments():
     with open(EXPERIMENTS_CSV, newline='', encoding='utf-8') as handle:
-        reader = csv.DictReader(handle)
-        for row in reader:
-            if row.get('set_counter', '').strip() == set_counter:
-                return row
-    raise ValueError(
-        f"Experiment set counter '{set_counter}' was not found in "
-        f"'{EXPERIMENTS_CSV}'."
-    )
+        return list(csv.DictReader(handle))
+
+
+def find_experiment(run_name):
+    """
+    Match a run name of the form '<experiment>_<ESM>' (or just
+    '<experiment>' for experiments without an ESM, e.g. 'ocx') to a row of
+    experiments.csv.  Matching is case insensitive.
+    """
+    rows = _read_experiments()
+    valid = [r['experiment_id'] if r['esm_id'].strip() == '-'
+             else f"{r['experiment_id']}_{r['esm_id']}" for r in rows]
+    if '_' in run_name:
+        exp_token, esm_token = run_name.split('_', 1)
+    else:
+        exp_token, esm_token = run_name, '-'
+    exp_token = exp_token.lower()
+    exp_token = EXPERIMENT_ALIASES.get(exp_token, exp_token)
+    matches = [r for r in rows
+               if r['experiment_id'].strip().lower() == exp_token and
+               r['esm_id'].strip().lower() == esm_token.lower()]
+    if len(matches) != 1:
+        raise ValueError(
+            f"Could not match run name '{run_name}' to a unique experiment "
+            f"in '{EXPERIMENTS_CSV}'. Run directories must be named "
+            "'<experiment>_<ESM>' (or just '<experiment>' for ocx), e.g.: "
+            f"{', '.join(valid)}. Use --run_name to override the directory "
+            "name.")
+    return matches[0]
+
+
+def _run_name_from_output_dir(mali_output_dir):
+    """Name of the run directory: the parent of the 'output' directory."""
+    path = os.path.abspath(mali_output_dir.rstrip('/'))
+    if os.path.basename(path) == 'output':
+        path = os.path.dirname(path)
+    return os.path.basename(path)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-e",
-        "--exp_name",
-        dest="exp",
-        required=True,
-        help="ISMIP7 experiment name (e.g., C001)",
+        "--run_name",
+        dest="run_name",
+        required=False,
+        help=(
+            "Run name '<experiment>_<ESM>' (e.g., historical_CESM2-WACCM) "
+            "used to look up the experiment in experiments.csv. Default: "
+            "name of the run directory containing --mali_output_dir."
+        ),
     )
     parser.add_argument(
         "-i",
@@ -262,7 +303,6 @@ def main():
     global_stats_files = sorted(glob.glob(global_stats_glob))
     check_global_stats_files(global_stats_files)
 
-    check_exp_name(args.exp)
     check_res(args.res_ismip7_grid, args.icesheet)
 
     ismip7_grid_file = (
@@ -272,7 +312,13 @@ def main():
         args.icesheet, args.res_ismip7_grid, ismip7_grid_file
     )
 
-    experiment_info = _load_experiment_info(args.exp)
+    run_name = args.run_name or _run_name_from_output_dir(
+        args.mali_output_dir)
+    experiment_info = find_experiment(run_name)
+    set_counter = experiment_info['set_counter'].strip()
+    print(f"Run name '{run_name}' matches experiment {set_counter}: "
+          f"experiment_id={experiment_info['experiment_id'].strip()}, "
+          f"esm_id={experiment_info['esm_id'].strip()}")
     experiment_id = experiment_info['experiment_id'].strip().lower()
     esm_id = experiment_info['esm_id'].strip()
 
@@ -280,7 +326,7 @@ def main():
 
     metadata = {
         'set_id': 'CORE',
-        'set_counter': args.exp,
+        'set_counter': set_counter,
         'domain_id': args.icesheet,
         'source_id': group_meta['group_nickname'],
         'ism_id': DEFAULT_ISM_ID,
@@ -344,7 +390,7 @@ def main():
 
     print("---Processing remapping file complete---\n")
 
-    output_path = os.path.join(args.output_path, args.exp)
+    output_path = os.path.join(args.output_path, set_counter)
     print(f"Using output path: {output_path}")
     if not os.path.isdir(output_path):
         os.makedirs(output_path)

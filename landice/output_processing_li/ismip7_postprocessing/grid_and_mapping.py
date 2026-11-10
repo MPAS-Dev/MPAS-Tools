@@ -8,7 +8,6 @@ from netCDF4 import num2date
 import xarray as xr
 
 
-VALID_EXPERIMENTS = [f"C{i:03d}" for i in range(1, 12)]
 VALID_RESOLUTIONS = {
     'AIS': [2, 4, 8, 16],
     'GrIS': [1, 2, 4, 8, 16],
@@ -61,27 +60,6 @@ def check_res(res, icesheet):
             f"Invalid resolution '{res_int}' km for {icesheet}. "
             f"Valid resolutions (km) are: {valid}")
     print(f"Resolution {res_int} km is valid for {icesheet}.")
-
-
-def check_exp_name(exp):
-    """
-    Validate the ISMIP7 experiment name.
-
-    Parameters
-    ----------
-    exp : str
-        Experiment name to validate (e.g. 'C001').
-
-    Raises
-    ------
-    ValueError
-        If the experiment name is not in the list of valid experiments.
-    """
-    if exp not in VALID_EXPERIMENTS:
-        raise ValueError(
-            f"Invalid experiment name '{exp}'. "
-            f"Valid experiments are: {', '.join(VALID_EXPERIMENTS)}")
-    print(f"Experiment name '{exp}' is valid.")
 
 
 def get_time_range(globalstats_files):
