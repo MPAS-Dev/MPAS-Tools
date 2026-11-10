@@ -93,10 +93,11 @@ def process_flux_vars(files, tmp_file, input_file_mesh=None):
 
     ds_flux['avgCalvingFlux'] = -1.0 * ds_flux['avgCalvingFlux']  # flip sign of calving flux to match ISMIP7 convention
     ds_flux['avgFaceMeltFlux'] = -1.0 * ds_flux['avgFaceMeltFlux']  # flip sign of face melt flux to match ISMIP7 convention
-    print("avgGroundingLineFlux min, max values before clipping: ",
-          np.nanmin(ds_flux['avgGroundingLineFlux'].values),
-          np.nanmax(ds_flux['avgGroundingLineFlux'].values))
-    ds_flux['avgGroundingLineFlux'] = ds_flux['avgGroundingLineFlux'].clip(min=0.0)
+    # MALI reports the grounding-line flux as positive from grounded to
+    # floating ice; ISMIP7 uses a mass-change convention (like calving), so
+    # loss from the grounded ice is negative.  Negative MALI values (flow
+    # onto ice rumples) become small positive values and are kept.
+    ds_flux['avgGroundingLineFlux'] = -1.0 * ds_flux['avgGroundingLineFlux']
     ds_flux['avgDhdt'] = ds_flux['avgDhdt'] / (3600.0 * 24.0 * 365.0)  # convert from m/yr to m/s
 
     # hfgeoubed is constant in time, so no averaging is needed; broadcast it

@@ -401,7 +401,7 @@ def generate_output_1d_vars(files, output_path, metadata):
                     days_max,
                     'tendency_of_land_ice_mass_due_to_ice_front_melting',
                     'kg s-1', 'Total ice front melting flux', **common)
-    _write_flux_var('tendligroundf', gfx_avg / 31536000.0, days_min, days_max,
+    _write_flux_var('tendligroundf', -gfx_avg / 31536000.0, days_min, days_max,
                     'tendency_of_grounded_ice_mass',
                     'kg s-1', 'Total grounding line flux', **common)
 
