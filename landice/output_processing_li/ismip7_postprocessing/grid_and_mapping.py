@@ -304,14 +304,7 @@ def build_mapping_file(mali_mesh_file,
           "for ismip7 grid and mali mesh...")
 
     # create a scripfile for ismip7 grid
-    script_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..", "..", "..",
-        "conda_package", "mesh_tools", "create_SCRIP_files",
-        "create_SCRIP_file_from_planar_rectangular_grid.py"
-    )
-    script_path = os.path.abspath(script_path)
-    args = ["python", script_path,
+    args = ["create_scrip_file_from_planar_rectangular_grid",
             "--input", ismip7_grid_file,
             "--scrip", ismip7_scripfile,
             "--proj", ismip7_projection,
@@ -322,39 +315,37 @@ def build_mapping_file(mali_mesh_file,
     # create a MALI mesh scripfile
     scrip_from_mpas(mali_mesh_file, mali_scripfile)
 
-    # create a mapping file using ESMF weight gen
+    # create a mapping file using TempestRemap (serial; ESMF_RegridWeightGen
+    # has been prone to segfaults)
     print(f"Creating a mapping file... "
           f"Mapping method used: {method_remap}")
+    if method_remap != "conserve":
+        raise ValueError(
+            f"Unsupported remap method '{method_remap}' for TempestRemap. "
+            "Only 'conserve' is supported.")
 
-    # generate a mapping file using the scrip files
+    src_mesh = "temp_mali_tempest.g"
+    dst_mesh = f"temp_ismip7_{res_ismip7_grid}km_tempest.g"
+    overlap_mesh = "temp_overlap_tempest.g"
 
-    # On compute node, ESMG regridder needs to be called with srun
-    # On head nodes or local machines it does not.
-    # Here, assuming a compute node has hostname starting with nid,
-    # which is the case on Cori.  Modify as needed for other machines.
-    # Also assuming we can use multiple cores on a compute node.
-    hostname = os.uname()[1]
-    if hostname.startswith('nid'):
-        args = (["srun", "-n", "12", "ESMF_RegridWeightGen",
-                 "-s", mali_scripfile,
-                 "-d", ismip7_scripfile,
-                 "-w", mapping_file,
-                 "-m", method_remap,
-                 "-i", "-64bit_offset",
-                 "--dst_regional", "--src_regional"])
-    else:
-        args = (["ESMF_RegridWeightGen",
-                 "-s", mali_scripfile,
-                 "-d", ismip7_scripfile,
-                 "-w", mapping_file,
-                 "-m", method_remap,
-                 "-i", "-64bit_offset",
-                 "--dst_regional", "--src_regional"])
-
-    print(f"Running remapping command: {' '.join(args)}")
-    check_call(args)
+    # convert SCRIP files to Exodus meshes, then build the overlap mesh and
+    # the finite-volume conservative map
+    commands = [
+        ["ConvertMeshToExodus", "--in", mali_scripfile, "--out", src_mesh],
+        ["ConvertMeshToExodus", "--in", ismip7_scripfile, "--out", dst_mesh],
+        ["GenerateOverlapMesh", "--a", src_mesh, "--b", dst_mesh,
+         "--out", overlap_mesh, "--allow_no_overlap"],
+        ["GenerateOfflineMap", "--in_mesh", src_mesh,
+         "--out_mesh", dst_mesh, "--ov_mesh", overlap_mesh,
+         "--in_np", "1", "--out_np", "1",
+         "--out_map", mapping_file, "--out_format", "Offset64Bits"],
+    ]
+    for args in commands:
+        print(f"Running remapping command: {' '.join(args)}")
+        check_call(args)
 
     # remove the temporary scripfiles once the mapping file is generated
     print("Removing the temporary mesh and scripfiles...")
-    os.remove(ismip7_scripfile)
-    os.remove(mali_scripfile)
+    for f in (ismip7_scripfile, mali_scripfile,
+              src_mesh, dst_mesh, overlap_mesh):
+        os.remove(f)
