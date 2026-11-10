@@ -202,6 +202,35 @@ def main():
         ),
     )
     parser.add_argument(
+        "--approx_ligroundf_from_restart",
+        dest="approx_ligroundf",
+        action="store_true",
+        default=False,
+        help=(
+            "Fallback for runs whose native avgGroundingLineFlux is "
+            "unreliable (older MALI versions divided it by the ice "
+            "thickness, giving huge values at thin ice): approximate "
+            "ligroundf from restart snapshots (normalVelocity, thickness, "
+            "cellMask; layerThicknessFractions from --input_mesh) instead "
+            "of the time-averaged native field. For each output year, the "
+            "mean over all restarts in that year is used, so this is an "
+            "approximation (better with more frequent restarts). Requires "
+            "--input_mesh and applies to the 'flux' set. Uses --restart_dir "
+            "and --ligroundf_restart_pattern. Off by default."
+        ),
+    )
+    parser.add_argument(
+        "--ligroundf_restart_pattern",
+        dest="ligroundf_restart_pattern",
+        required=False,
+        default='rst.*.nc',
+        help=(
+            "Filename pattern within --restart_dir for the restart files "
+            "used by --approx_ligroundf_from_restart (default: 'rst.*.nc', "
+            "i.e. all restarts)."
+        ),
+    )
+    parser.add_argument(
         "-m",
         "--input_mesh",
         dest="input_file_mesh",
@@ -420,6 +449,22 @@ def main():
     if process_flux:
         print("\n---Processing flux file(s)---")
         flux_files = sorted(glob.glob(flux_glob))
+        gl_restart_files = None
+        if args.approx_ligroundf:
+            if not args.input_file_mesh:
+                raise ValueError(
+                    "--input_mesh is required with "
+                    "--approx_ligroundf_from_restart.")
+            restart_dir = args.restart_dir or os.path.dirname(
+                os.path.abspath(args.mali_output_dir.rstrip('/')))
+            gl_restart_files = sorted(glob.glob(
+                os.path.join(restart_dir, args.ligroundf_restart_pattern)))
+            if not gl_restart_files:
+                raise FileNotFoundError(
+                    "--approx_ligroundf_from_restart: no restart files "
+                    f"match {restart_dir}/{args.ligroundf_restart_pattern}")
+            print("NOTE: ligroundf is approximated from restart snapshots, "
+                  "not the time-averaged native flux.")
         process_flux_pipeline(
             flux_files,
             mapping_file,
@@ -427,6 +472,7 @@ def main():
             output_path,
             metadata,
             input_file_mesh=args.input_file_mesh,
+            gl_restart_files=gl_restart_files,
         )
         print("---Processing flux file(s) complete---\n")
     else:
