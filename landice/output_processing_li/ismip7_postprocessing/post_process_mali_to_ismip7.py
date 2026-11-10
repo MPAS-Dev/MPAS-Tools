@@ -18,30 +18,8 @@ More info at:
 https://github.com/ismip/ISM_SimulationChecker/blob/main/conventions/ISMIP7_variable_request.csv
 https://www.ismip.org/research/ismip7
 
-Example usage from testing on initial ISMIP7 submission data:
-python post_process_mali_to_ismip7.py \
-    -o /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/test \
-    -g "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/globalStats_*.nc" \
-    --icesheet AIS \
-    -e C001 \
-    --res 04 \
-    -m /pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/relaxed_10yrs_4km.nc \
-    -s "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
-    --ismip7_grid_file /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/misc/af2_AIS_04000m_v1.nc \
-    -f "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc"
-
-And here is an example of only processing 2d state and flux after the mapping file has been created:
-python post_process_mali_to_ismip7.py \
-    -o /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/test \
-    --icesheet AIS \
-    -e C001 \
-    --res 04 \
-    -m /pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/relaxed_10yrs_4km.nc \
-    -s "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
-    -f "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
-    --ismip7_grid_file /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/misc/af2_AIS_04000m_v1.nc \
-    --reuse_mapping_file mapping_mali_to_ismip7.conserve.20260626T130744.nc
-
+Example usage from testing on GrIS production ensemble:
+python post_process_mali_to_ismip7.py -o /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/postprocessing --icesheet GrIS --res 01 --group DOE -m /global/cfs/cdirs/fanssie/MALI_projects/ISMIP7/GIS/initial_condition/20261029/GIS_1to10km_r03_20260925_after_8yr-iter-relax_basicFields2.nc -s "output_2d_*.nc" -f "output_2d_*.nc" -i /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/ocx/output -e C011
 """
 
 import argparse
@@ -132,7 +110,7 @@ def main():
         "--input_state_pattern",
         dest="input_state_pattern",
         required=False,
-        default='output_state_*.nc',
+        default='output_2d_*.nc',
         help=(
             "Filename pattern within --mali_output_dir for one or more "
             "MALI 2d state output files (default: 'output_state_*.nc')."
@@ -143,7 +121,7 @@ def main():
         "--input_flux_pattern",
         dest="input_flux_pattern",
         required=False,
-        default='output_flux_*.nc',
+        default='output_2d_*.nc',
         help=(
             "Filename pattern within --mali_output_dir for one or more "
             "MALI 2d flux output files (default: 'output_flux_*.nc')."
