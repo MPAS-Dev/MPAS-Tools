@@ -10,7 +10,7 @@ from subprocess import check_call
 import os
 from validate import validate_mali_files
 from output_naming import build_output_filename
-from netcdf_utils import zero_where_invalid
+from netcdf_utils import to_masked, zero_where_invalid
 import datetime
 from time_utils import (get_calendar, decimal_years, days_at_jan1,
                         days_to_ismip7_time)
@@ -46,7 +46,7 @@ def check_flux_files(files):
     validate_mali_files(files, EXPECTED_FLUX_VARIABLES, label='flux')
 
 
-def process_flux_vars(files, tmp_file):
+def process_flux_vars(files, tmp_file, input_file_mesh=None):
     """
     Prepare flux files into a temporary file for remapping.
     This is very simple, because flux variables are already
@@ -58,6 +58,8 @@ def process_flux_vars(files, tmp_file):
         Sorted list of MALI flux output file paths.
     tmp_file : str
         Temporary output file name.
+    input_file_mesh : str, optional
+        MALI file with the time-invariant basalHeatFlux, used for hfgeoubed.
     """
     ds_flux = xr.open_mfdataset(files, combine='nested',
                                 concat_dim='Time',
@@ -97,6 +99,22 @@ def process_flux_vars(files, tmp_file):
     ds_flux['avgGroundingLineFlux'] = ds_flux['avgGroundingLineFlux'].clip(min=0.0)
     ds_flux['avgDhdt'] = ds_flux['avgDhdt'] / (3600.0 * 24.0 * 365.0)  # convert from m/yr to m/s
 
+    # hfgeoubed is constant in time, so no averaging is needed; broadcast it
+    # to the flux times so it follows the FL time convention like the fluxes.
+    have_hfgeo = False
+    if input_file_mesh is not None:
+        with xr.open_dataset(input_file_mesh, decode_cf=False) as ds_mesh:
+            if 'basalHeatFlux' in ds_mesh:
+                hfgeo = ds_mesh['basalHeatFlux'].isel(Time=0).values
+                ntime = ds_flux.sizes['Time']
+                ds_flux['hfgeoubed'] = xr.DataArray(
+                    np.broadcast_to(hfgeo, (ntime,) + hfgeo.shape).copy(),
+                    dims=('Time', 'nCells'), attrs={'units': 'W m-2'})
+                have_hfgeo = True
+            else:
+                print(f"basalHeatFlux not found in {input_file_mesh}; "
+                      "hfgeoubed will not be written.")
+
     missing = [
         var for var in REQUIRED_FLUX_REMAPPING_VARIABLES
         if var not in ds_flux
@@ -108,7 +126,10 @@ def process_flux_vars(files, tmp_file):
         )
 
     # subset to only required variables to keep file small for remapping
-    ds_flux_out = ds_flux[REQUIRED_FLUX_REMAPPING_VARIABLES]
+    keep = list(REQUIRED_FLUX_REMAPPING_VARIABLES)
+    if have_hfgeo:
+        keep.append('hfgeoubed')
+    ds_flux_out = ds_flux[keep]
     # remove the first time step (which is always 0)
     time_mask = ~np.isclose(ds_flux_out['daysSinceStart'].values, 0.0, rtol=0.0)
     if not np.any(time_mask):
@@ -209,7 +230,11 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
             tmp = np.where(bmb_mask[i, :, :] > 0, tmp, 0.0)
         # all ISMIP7 2D flux variables must be 0 (not missing) where there is
         # no ice
-        dataValues[i, :, :] = zero_where_invalid(tmp)
+        if ismip7_var_name == 'hfgeoubed':
+            # defined throughout the domain, missing only outside it
+            dataValues[i, :, :] = to_masked(tmp)
+        else:
+            dataValues[i, :, :] = zero_where_invalid(tmp)
         # ISMIP7 convention for flux (FL) variables: the time coordinate is
         # Jul 1 of the nominal (averaging) year, which is the year before the
         # Jan 1 record that holds the annual mean.  The averaging interval is
@@ -259,6 +284,20 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
     exp: ISMIP7 experiment name
     output_path: path to which the final output files are saved
     """
+
+    # ----------- hfgeoubed ------------------
+    with Dataset(file_remapped_mali_flux, 'r') as ds_check:
+        have_hfgeo = 'hfgeoubed' in ds_check.variables
+    if have_hfgeo:
+        print("* Writing hfgeoubed")
+        write_netcdf_2d_flux_vars('hfgeoubed', 'hfgeoubed',
+                                  'upward_geothermal_heat_flux_in_land_ice',
+                                  'W m-2', 'Geothermal heat flux',
+                                  file_remapped_mali_flux,
+                                  ismip7_grid_file, output_path, metadata,
+                                  calendar=calendar)
+    else:
+        print("* Skipping hfgeoubed (no basalHeatFlux from input mesh file)")
 
     # ----------- acabf ------------------
     print("* Writing acabf")
@@ -331,7 +370,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
 
 
 def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
-                          output_path, metadata):
+                          output_path, metadata, input_file_mesh=None):
     """
     Full flux-variable processing pipeline:
     validate, concatenate, remap, write.
@@ -348,6 +387,8 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
         Directory for output files.
     metadata : dict
         Submission metadata dict with time_range computed from globalStats.
+    input_file_mesh : str, optional
+        MALI file with basalHeatFlux, used for hfgeoubed.
     """
     metadata = metadata.copy()
 
@@ -359,7 +400,7 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
 
     print("Preparing concatenated flux file for remapping.")
     tmp_flux_file = 'tmp_flux.nc'
-    process_flux_vars(flux_files, tmp_flux_file)
+    process_flux_vars(flux_files, tmp_flux_file, input_file_mesh)
 
     print("Remapping flux file.")
     remapped_file_flux = 'remapped_flux.nc'

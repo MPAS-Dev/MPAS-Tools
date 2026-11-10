@@ -50,12 +50,10 @@ def check_state_files(files):
     validate_mali_files(files, EXPECTED_STATE_VARIABLES, label='state')
 
 
-def process_state_vars(files, tmp_file, input_file_mesh=None):
+def process_state_vars(files, tmp_file):
     """
     files: list of MALI state output file paths
     tmp_file: temporary output file name
-    input_file_mesh: optional MALI file containing the time-invariant
-        basalHeatFlux (geothermal heat flux), used to write hfgeoubed
     """
 
     inputfile_state_vars = xr.open_mfdataset(files, combine='nested',
@@ -136,21 +134,6 @@ def process_state_vars(files, tmp_file, input_file_mesh=None):
         inputfile_state_vars['thdrflf'] = \
             inputfile_state_vars['ismip6shelfMelt_TFdraft']
 
-    # hfgeoubed is time-independent and only available in the input (mesh)
-    # file.  ISMIP7 wants a time dimension, so broadcast it to the state times.
-    if input_file_mesh is not None:
-        with xr.open_dataset(input_file_mesh, decode_cf=False) as ds_mesh:
-            if 'basalHeatFlux' in ds_mesh:
-                hfgeo = ds_mesh['basalHeatFlux'].isel(Time=0).values
-                ntime = inputfile_state_vars.sizes['Time']
-                inputfile_state_vars['hfgeoubed'] = xr.DataArray(
-                    np.broadcast_to(hfgeo, (ntime,) + hfgeo.shape).copy(),
-                    dims=('Time', 'nCells'),
-                    attrs={'units': 'W m-2'})
-            else:
-                print(f"basalHeatFlux not found in {input_file_mesh}; "
-                      "hfgeoubed will not be written.")
-
     speed_base = (uxbase[:, :] ** 2 + uybase[:, :] ** 2) ** 0.5
     seconds_per_year = 3600.0 * 24.0 * 365.0
     inputfile_state_vars['strbasemag'] = (
@@ -177,7 +160,7 @@ def process_state_vars(files, tmp_file, input_file_mesh=None):
         )
 
     keep = list(REQUIRED_STATE_REMAPPING_VARIABLES)
-    for var in OPTIONAL_STATE_REMAPPING_VARIABLES + ['hfgeoubed']:
+    for var in OPTIONAL_STATE_REMAPPING_VARIABLES:
         if var in inputfile_state_vars:
             keep.append(var)
         else:
@@ -273,10 +256,10 @@ def write_netcdf_2d_state_vars(
     # None; mask defining where it is defined, or None for the whole domain).
     weight_name = {'litempbotgr': 'sftgrf', 'litempbotfl': 'sftflf',
                    'litempavg': 'sftgif'}.get(ismip7_var_name)
-    # orog, base, topg, deltag, hfgeoubed, thdrflf are defined throughout the
+    # orog, base, topg, deltag, thdrflf are defined throughout the
     # computational domain (missing only outside it), incl. where no ice.
     whole_domain = ismip7_var_name in ('orog', 'base', 'topg', 'deltag',
-                                       'hfgeoubed', 'thdrflf')
+                                       'thdrflf')
     weights = {'sftgrf': var_sftgrf, 'sftflf': var_sftflf,
                'sftgif': var_sftgif}
     for i in range(timeSteps):
@@ -325,8 +308,7 @@ def write_netcdf_2d_state_vars(
 
 def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
                            output_path, metadata,
-                           reference_geoid='EIGEN-6C4',
-                           input_file_mesh=None):
+                           reference_geoid='EIGEN-6C4'):
     """
     Full state-variable processing pipeline: validate, adjust, remap, write.
 
@@ -347,8 +329,6 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
         Value of the reference_geoid attribute written on deltag:
         'EIGEN-6C4' (BedMachine), 'GL04C' (Bedmap), or
         'custom, defined by ref_geoid variable'.
-    input_file_mesh : str, optional
-        MALI file with basalHeatFlux, used for hfgeoubed.
     """
     metadata = metadata.copy()
 
@@ -360,7 +340,7 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
 
     print("Calculating needed state file adjustments.")
     tmp_file = "tmp_state.nc"
-    process_state_vars(state_files, tmp_file, input_file_mesh=input_file_mesh)
+    process_state_vars(state_files, tmp_file)
 
     processed_and_remapped_file_state = 'processed_and_remapped_state.nc'
     print("Remapping state file.")
@@ -458,21 +438,9 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
     else:
         print("* Skipping deltag (geoidChange not in MALI output)")
 
-    # ----------- hfgeoubed ------------------
-    # Time-independent in MALI; broadcast over time in process_state_vars.
+    # hfgeoubed is an FL variable and is written by the flux processing.
     with Dataset(file_remapped_mali_state, 'r') as ds_check:
-        have_hfgeo = 'hfgeoubed' in ds_check.variables
         have_thdrflf = 'thdrflf' in ds_check.variables
-    if have_hfgeo:
-        print("* Writing hfgeoubed")
-        write_netcdf_2d_state_vars('hfgeoubed', 'hfgeoubed',
-                                   'upward_geothermal_heat_flux_in_land_ice',
-                                   'W m-2', 'Geothermal heat flux',
-                                   file_remapped_mali_state,
-                                   ismip7_grid_file, output_path, metadata,
-                                   calendar=calendar)
-    else:
-        print("* Skipping hfgeoubed (no basalHeatFlux from input mesh file)")
 
     # ----------- xvelsurf ------------------
     print("* Writing xvelsurf")

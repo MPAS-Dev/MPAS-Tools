@@ -366,7 +366,6 @@ def main():
             output_path,
             metadata,
             reference_geoid=args.reference_geoid,
-            input_file_mesh=args.input_file_mesh,
         )
         print("---Processing state file(s) complete---\n")
     else:
@@ -381,6 +380,7 @@ def main():
             ismip7_grid_file,
             output_path,
             metadata,
+            input_file_mesh=args.input_file_mesh,
         )
         print("---Processing flux file(s) complete---\n")
     else:
