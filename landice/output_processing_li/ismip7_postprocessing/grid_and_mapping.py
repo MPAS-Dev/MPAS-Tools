@@ -1,3 +1,4 @@
+import resource
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from subprocess import check_call
 import os
@@ -304,24 +305,11 @@ def build_mapping_file(mali_mesh_file,
           "for ismip7 grid and mali mesh...")
 
     # create a scripfile for ismip7 grid
-    script_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..", "..", "..",
-        "conda_package", "mesh_tools", "create_SCRIP_files",
-        "create_SCRIP_file_from_planar_rectangular_grid.py"
-    )
-    script_path = os.path.abspath(script_path)
-    scrip_options = ["--input", ismip7_grid_file,
-                     "--scrip", ismip7_scripfile,
-                     "--proj", ismip7_projection,
-                     "--rank", "2"]
-    if os.path.isfile(script_path):
-        args = ["python", script_path] + scrip_options
-    else:
-        # The script has been turned into an entry point of the mpas_tools
-        # conda package; use that when the repo script is not found.
-        args = ["create_scrip_file_from_planar_rectangular_grid"] + \
-            scrip_options
+    args = ["create_scrip_file_from_planar_rectangular_grid",
+            "--input", ismip7_grid_file,
+            "--scrip", ismip7_scripfile,
+            "--proj", ismip7_projection,
+            "--rank", "2"]
 
     check_call(args)
 
@@ -357,8 +345,14 @@ def build_mapping_file(mali_mesh_file,
                  "-i", "-64bit_offset",
                  "--dst_regional", "--src_regional"])
 
+    # ESMF_RegridWeightGen segfaults on large meshes with the default 8 MB
+    # stack limit.  Raise it for the child process (srun propagates it).
+    def _raise_stack_limit():
+        soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+        resource.setrlimit(resource.RLIMIT_STACK, (hard, hard))
+
     print(f"Running remapping command: {' '.join(args)}")
-    check_call(args)
+    check_call(args, preexec_fn=_raise_stack_limit)
 
     # remove the temporary scripfiles once the mapping file is generated
     print("Removing the temporary mesh and scripfiles...")
