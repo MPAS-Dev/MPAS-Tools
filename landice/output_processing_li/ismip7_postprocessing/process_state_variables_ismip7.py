@@ -3,13 +3,14 @@ This script has functions that are needed to post-process and write state
 output variables from ISMIP7 simulations.
 """
 
-from netCDF4 import Dataset, num2date, date2num, default_fillvals
+from netCDF4 import Dataset, default_fillvals
 import xarray as xr
 import numpy as np
 import os
 from subprocess import check_call
 from validate import validate_mali_files
 from output_naming import build_output_filename
+from mali_time import get_calendar, to_days_since_1850
 
 
 EXPECTED_STATE_VARIABLES = [
@@ -65,8 +66,7 @@ def process_state_vars(files, tmp_file):
         inputfile_state_vars = inputfile_state_vars.isel(Time=slice(1, None))
 
     # get the mesh description data
-    nLayer = inputfile_state_vars.sizes['nVertLevels']
-    nInterface = nLayer + 1  # inputfile_state_vars.sizes['nVertInterfaces']
+    nInterface = inputfile_state_vars.sizes['nVertInterfaces']
     cellMask = inputfile_state_vars['cellMask'][:, :]
     basalTemperature = inputfile_state_vars['basalTemperature'][:, :]
     betaSolve = inputfile_state_vars['betaSolve'][:, :]
@@ -161,17 +161,10 @@ def write_netcdf_2d_state_vars(
     simulationStartTime = data.variables['simulationStartTime'][:].tobytes(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
-    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
-    daysSinceStart = data.variables['daysSinceStart'][:]
-    daysSinceStart = date2num(
-        num2date(
-            daysSinceStart,
-            units=f'days since {simulationStartDate}',
-            calendar='noleap',
-        ),
-        units='days since 1850-01-01',
-        calendar='standard',
-    )
+    # Convert from the MALI time axis to days since 1850-01-01
+    calendar = get_calendar(data)
+    daysSinceStart = to_days_since_1850(
+        data.variables['daysSinceStart'][:], simulationStartDate, calendar)
     var_sftgif = data.variables['sftgif'][:, :, :]
     var_sftgrf = data.variables['sftgrf'][:, :, :]
     var_sftflf = data.variables['sftflf'][:, :, :]
