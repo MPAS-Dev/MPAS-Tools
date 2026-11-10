@@ -38,7 +38,7 @@ REQUIRED_STATE_REMAPPING_VARIABLES = [
 
 # Written only if present in the MALI output (runs with a GIA model such as
 # FastIsostasy or the 1D sea-level model that outputs geoidChange).
-OPTIONAL_STATE_REMAPPING_VARIABLES = ['geoidChange']
+OPTIONAL_STATE_REMAPPING_VARIABLES = ['geoidChange', 'thdrflf']
 
 
 def check_state_files(files):
@@ -50,10 +50,12 @@ def check_state_files(files):
     validate_mali_files(files, EXPECTED_STATE_VARIABLES, label='state')
 
 
-def process_state_vars(files, tmp_file):
+def process_state_vars(files, tmp_file, input_file_mesh=None):
     """
     files: list of MALI state output file paths
     tmp_file: temporary output file name
+    input_file_mesh: optional MALI file containing the time-invariant
+        basalHeatFlux (geothermal heat flux), used to write hfgeoubed
     """
 
     inputfile_state_vars = xr.open_mfdataset(files, combine='nested',
@@ -110,6 +112,29 @@ def process_state_vars(files, tmp_file):
     # dynamic ice
     inputfile_state_vars['sftgif'] = dynamic_mask
 
+    # Thermal forcing at the ice draft, only for floating ice.  Like
+    # litempbotfl, it is area-weighted here and divided by sftflf after
+    # remapping.
+    if 'ismip6shelfMelt_TFdraft' in inputfile_state_vars:
+        inputfile_state_vars['thdrflf'] = (
+            inputfile_state_vars['ismip6shelfMelt_TFdraft'] *
+            floating_mask * dynamic_mask)
+
+    # hfgeoubed is time-independent and only available in the input (mesh)
+    # file.  ISMIP7 wants a time dimension, so broadcast it to the state times.
+    if input_file_mesh is not None:
+        with xr.open_dataset(input_file_mesh, decode_cf=False) as ds_mesh:
+            if 'basalHeatFlux' in ds_mesh:
+                hfgeo = ds_mesh['basalHeatFlux'].isel(Time=0).values
+                ntime = inputfile_state_vars.sizes['Time']
+                inputfile_state_vars['hfgeoubed'] = xr.DataArray(
+                    np.broadcast_to(hfgeo, (ntime,) + hfgeo.shape).copy(),
+                    dims=('Time', 'nCells'),
+                    attrs={'units': 'W m-2'})
+            else:
+                print(f"basalHeatFlux not found in {input_file_mesh}; "
+                      "hfgeoubed will not be written.")
+
     speed_base = (uxbase[:, :] ** 2 + uybase[:, :] ** 2) ** 0.5
     seconds_per_year = 3600.0 * 24.0 * 365.0
     inputfile_state_vars['strbasemag'] = (
@@ -136,7 +161,7 @@ def process_state_vars(files, tmp_file):
         )
 
     keep = list(REQUIRED_STATE_REMAPPING_VARIABLES)
-    for var in OPTIONAL_STATE_REMAPPING_VARIABLES:
+    for var in OPTIONAL_STATE_REMAPPING_VARIABLES + ['hfgeoubed']:
         if var in inputfile_state_vars:
             keep.append(var)
         else:
@@ -233,13 +258,19 @@ def write_netcdf_2d_state_vars(
                 with np.errstate(divide='ignore', invalid='ignore'):
                     var_mali[i, :, :] = var_mali[i, :, :] / mask
                 mask = (var_sftgrf[i, :, :] > 0.99)
-            elif ismip7_var_name == 'litempbotfl':
+            elif ismip7_var_name == 'litempavg':
+                # area-weighted by ice mask before remapping; undo here
+                mask = var_sftgif[i, :, :]
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    var_mali[i, :, :] = var_mali[i, :, :] / mask
+            elif ismip7_var_name in ('litempbotfl', 'thdrflf'):
                 mask = (var_sftflf[i, :, :])
                 with np.errstate(divide='ignore', invalid='ignore'):
                     var_mali[i, :, :] = var_mali[i, :, :] / mask
                 mask = (var_sftflf[i, :, :] > 0.99)
-            elif ismip7_var_name in ('topg', 'deltag'):
-                # don't mask topg or the geoid anomaly (defined everywhere)
+            elif ismip7_var_name in ('topg', 'deltag', 'hfgeoubed'):
+                # don't mask topg, the geoid anomaly or geothermal heat flux
+                # (defined everywhere)
                 mask = np.ones(var_mali.shape[1:])
             else:
                 mask = var_sftgif[i, :, :]
@@ -250,7 +281,8 @@ def write_netcdf_2d_state_vars(
     xValues[:] = var_x
     yValues[:] = var_y
 
-    dataValues.standard_name = var_std_name
+    if var_std_name:
+        dataValues.standard_name = var_std_name
     dataValues.units = var_units
     if extra_var_attrs:
         for key, value in extra_var_attrs.items():
@@ -275,7 +307,8 @@ def write_netcdf_2d_state_vars(
 
 def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
                            output_path, metadata,
-                           reference_geoid='EIGEN-6C4'):
+                           reference_geoid='EIGEN-6C4',
+                           input_file_mesh=None):
     """
     Full state-variable processing pipeline: validate, adjust, remap, write.
 
@@ -296,6 +329,8 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
         Value of the reference_geoid attribute written on deltag:
         'EIGEN-6C4' (BedMachine), 'GL04C' (Bedmap), or
         'custom, defined by ref_geoid variable'.
+    input_file_mesh : str, optional
+        MALI file with basalHeatFlux, used for hfgeoubed.
     """
     metadata = metadata.copy()
 
@@ -307,7 +342,7 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
 
     print("Calculating needed state file adjustments.")
     tmp_file = "tmp_state.nc"
-    process_state_vars(state_files, tmp_file)
+    process_state_vars(state_files, tmp_file, input_file_mesh=input_file_mesh)
 
     processed_and_remapped_file_state = 'processed_and_remapped_state.nc'
     print("Remapping state file.")
@@ -405,15 +440,21 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
     else:
         print("* Skipping deltag (geoidChange not in MALI output)")
 
-    # ----------- hfgeoubed------------------
-    # Note: even though this is a flux variable, we are taking a snapshot of it
-    # as it does not change with time.
-    # Uncomment once basalHeatFlux is outputted in the output stream.
-    # write_netcdf_2d_state_vars('basalHeatFlux', 'hfgeoubed',
-    #                            'upward_geothermal_heat_flux_in_land_ice',
-    #                            'W m-2', 'Geothermal heat flux',
-    #                            file_remapped_mali_state, ismip7_grid_file,
-    #                            exp, output_path)
+    # ----------- hfgeoubed ------------------
+    # Time-independent in MALI; broadcast over time in process_state_vars.
+    with Dataset(file_remapped_mali_state, 'r') as ds_check:
+        have_hfgeo = 'hfgeoubed' in ds_check.variables
+        have_thdrflf = 'thdrflf' in ds_check.variables
+    if have_hfgeo:
+        print("* Writing hfgeoubed")
+        write_netcdf_2d_state_vars('hfgeoubed', 'hfgeoubed',
+                                   'upward_geothermal_heat_flux_in_land_ice',
+                                   'W m-2', 'Geothermal heat flux',
+                                   file_remapped_mali_state,
+                                   ismip7_grid_file, output_path, metadata,
+                                   calendar=calendar)
+    else:
+        print("* Skipping hfgeoubed (no basalHeatFlux from input mesh file)")
 
     # ----------- xvelsurf ------------------
     print("* Writing xvelsurf")
@@ -535,3 +576,15 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                file_remapped_mali_state,
                                ismip7_grid_file, output_path, metadata,
                                calendar=calendar)
+
+    # ----------- thdrflf ------------------
+    if have_thdrflf:
+        print("* Writing thdrflf")
+        write_netcdf_2d_state_vars('thdrflf', 'thdrflf', '', 'K',
+                                   'Thermal forcing at the ice base under '
+                                   'floating ice shelves',
+                                   file_remapped_mali_state,
+                                   ismip7_grid_file, output_path, metadata,
+                                   calendar=calendar)
+    else:
+        print("* Skipping thdrflf (ismip6shelfMelt_TFdraft not in MALI output)")

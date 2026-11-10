@@ -3,8 +3,8 @@
 """
 This script processes MALI simulation outputs into the required format
 for submission to ISMIP7.
-There are 3 flavors of variables that can be processed:
-1D, 2D state, and 2D flux variables.
+There are 4 flavors of variables that can be processed:
+1D, 2D state, 2D flux, and restart-derived (litempavg) variables.
 Any combination can be specified.
 Processing assumes simulations were run with the output streams defined
 by the ismip7_run compass test case.
@@ -41,6 +41,7 @@ from process_1d_variables_ismip7 import (
     generate_output_1d_vars,
 )
 from process_flux_variables_ismip7 import process_flux_pipeline
+from process_restart_variables_ismip7 import process_restart_pipeline
 from process_state_variables_ismip7 import process_state_pipeline
 
 DEFAULT_MODEL = 'MALI (MPAS-Albany Land Ice model)'
@@ -131,11 +132,32 @@ def main():
         "--process_sets",
         dest="process_sets",
         nargs='+',
-        choices=['1d', 'state', 'flux'],
-        default=['1d', 'state', 'flux'],
+        choices=['1d', 'state', 'flux', 'restart'],
+        default=['1d', 'state', 'flux', 'restart'],
         help=(
             "Which variable sets to process. Provide one or more of: "
-            "'1d', 'state', 'flux'. Default processes all three."
+            "'1d', 'state', 'flux', 'restart'. Default processes all. "
+            "'restart' (litempavg) needs restart files; omit it if they "
+            "are not available."
+        ),
+    )
+    parser.add_argument(
+        "--restart_dir",
+        dest="restart_dir",
+        required=False,
+        help=(
+            "Directory containing MALI restart files (default: parent "
+            "directory of --mali_output_dir)."
+        ),
+    )
+    parser.add_argument(
+        "--input_restart_pattern",
+        dest="input_restart_pattern",
+        required=False,
+        default='rst.*-01-01.nc',
+        help=(
+            "Filename pattern within --restart_dir for Jan. 1 restart "
+            "files (default: 'rst.*-01-01.nc')."
         ),
     )
     parser.add_argument(
@@ -225,6 +247,7 @@ def main():
     process_1d = '1d' in args.process_sets
     process_state = 'state' in args.process_sets
     process_flux = 'flux' in args.process_sets
+    process_restart = 'restart' in args.process_sets
 
     if not os.path.isdir(args.mali_output_dir):
         raise FileNotFoundError(
@@ -280,7 +303,7 @@ def main():
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
-    if process_state or process_flux:
+    if process_state or process_flux or process_restart:
 
         method_remap = args.method_remap
         if args.reuse_mapping_file is not None:
@@ -343,6 +366,7 @@ def main():
             output_path,
             metadata,
             reference_geoid=args.reference_geoid,
+            input_file_mesh=args.input_file_mesh,
         )
         print("---Processing state file(s) complete---\n")
     else:
@@ -361,6 +385,28 @@ def main():
         print("---Processing flux file(s) complete---\n")
     else:
         print("--- Skipping flux variable processing (not selected).")
+
+    if process_restart:
+        print("\n---Processing restart file(s)---")
+        if args.input_file_mesh is None:
+            raise ValueError(
+                "--input_mesh is required for restart processing "
+                "(layerThicknessFractions).")
+        restart_dir = args.restart_dir or os.path.dirname(
+            os.path.abspath(args.mali_output_dir.rstrip('/')))
+        restart_files = sorted(glob.glob(
+            os.path.join(restart_dir, args.input_restart_pattern)))
+        process_restart_pipeline(
+            restart_files,
+            args.input_file_mesh,
+            mapping_file,
+            ismip7_grid_file,
+            output_path,
+            metadata,
+        )
+        print("---Processing restart file(s) complete---\n")
+    else:
+        print("--- Skipping restart variable processing (not selected).")
 
     print("---All processing complete---")
 
