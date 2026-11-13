@@ -3,8 +3,8 @@
 """
 This script processes MALI simulation outputs into the required format
 for submission to ISMIP7.
-There are 3 flavors of variables that can be processed:
-1D, 2D state, and 2D flux variables.
+There are 4 flavors of variables that can be processed:
+1D, 2D state, 2D flux, and restart-derived (litempavg) variables.
 Any combination can be specified.
 Processing assumes simulations were run with the output streams defined
 by the ismip7_run compass test case.
@@ -18,30 +18,15 @@ More info at:
 https://github.com/ismip/ISM_SimulationChecker/blob/main/conventions/ISMIP7_variable_request.csv
 https://www.ismip.org/research/ismip7
 
-Example usage from testing on initial ISMIP7 submission data:
-python post_process_mali_to_ismip7.py \
-    -o /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/test \
-    -g "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/globalStats_*.nc" \
-    --icesheet AIS \
-    -e C001 \
-    --res 04 \
-    -m /pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/relaxed_10yrs_4km.nc \
-    -s "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
-    --ismip7_grid_file /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/misc/af2_AIS_04000m_v1.nc \
-    -f "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc"
+Example usage from testing on GrIS production ensemble:
+python post_process_mali_to_ismip7.py -o /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/postprocessing --icesheet GrIS --res 01 --group DOE -m /global/cfs/cdirs/fanssie/MALI_projects/ISMIP7/GIS/initial_condition/20261029/GIS_1to10km_r03_20260925_after_8yr-iter-relax_basicFields2.nc -s "output_2d_*.nc" -f "output_2d_*.nc" -i /pscratch/sd/h/hoffman2/ISMIP7/GIS_PRODUCTION_20261108/landice/ismip7_run/ismip7_gris/ocx/output
 
-And here is an example of only processing 2d state and flux after the mapping file has been created:
-python post_process_mali_to_ismip7.py \
-    -o /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/test \
-    --icesheet AIS \
-    -e C001 \
-    --res 04 \
-    -m /pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/relaxed_10yrs_4km.nc \
-    -s "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
-    -f "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
-    --ismip7_grid_file /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/misc/af2_AIS_04000m_v1.nc \
-    --reuse_mapping_file mapping_mali_to_ismip7.conserve.20260626T130744.nc
-
+The experiment is determined from the name of the run directory (the parent of
+the --mali_output_dir directory), which must be '<experiment>_<ESM>', e.g.
+'historical_CESM2-WACCM' or 'ssp126_MRI-ESM2-0', or just 'ocx'.  The name is
+matched to experiments.csv, which gives the set counter (e.g. C001) used in the
+output file names and output subdirectory.  Use --run_name to override the
+directory name.
 """
 
 import argparse
@@ -52,7 +37,6 @@ from datetime import datetime
 
 from grid_and_mapping import (
     build_mapping_file,
-    check_exp_name,
     check_res,
     create_ismip7_grid_file,
     CRS_DICT,
@@ -63,6 +47,7 @@ from process_1d_variables_ismip7 import (
     generate_output_1d_vars,
 )
 from process_flux_variables_ismip7 import process_flux_pipeline
+from process_restart_variables_ismip7 import process_restart_pipeline
 from process_state_variables_ismip7 import process_state_pipeline
 
 DEFAULT_MODEL = 'MALI (MPAS-Albany Land Ice model)'
@@ -87,27 +72,62 @@ DEFAULT_FORCING_MEMBER_ID = 'f001'
 EXPERIMENTS_CSV = os.path.join(os.path.dirname(__file__), 'experiments.csv')
 
 
-def _load_experiment_info(set_counter):
-    """Load one experiment record from experiments.csv by set counter."""
+# run directory experiment names that differ from experiments.csv
+EXPERIMENT_ALIASES = {'ctrl': 'ctrl2015'}
+
+
+def _read_experiments():
     with open(EXPERIMENTS_CSV, newline='', encoding='utf-8') as handle:
-        reader = csv.DictReader(handle)
-        for row in reader:
-            if row.get('set_counter', '').strip() == set_counter:
-                return row
-    raise ValueError(
-        f"Experiment set counter '{set_counter}' was not found in "
-        f"'{EXPERIMENTS_CSV}'."
-    )
+        return list(csv.DictReader(handle))
+
+
+def find_experiment(run_name):
+    """
+    Match a run name of the form '<experiment>_<ESM>' (or just
+    '<experiment>' for experiments without an ESM, e.g. 'ocx') to a row of
+    experiments.csv.  Matching is case insensitive.
+    """
+    rows = _read_experiments()
+    valid = [r['experiment_id'] if r['esm_id'].strip() == '-'
+             else f"{r['experiment_id']}_{r['esm_id']}" for r in rows]
+    if '_' in run_name:
+        exp_token, esm_token = run_name.split('_', 1)
+    else:
+        exp_token, esm_token = run_name, '-'
+    exp_token = exp_token.lower()
+    exp_token = EXPERIMENT_ALIASES.get(exp_token, exp_token)
+    matches = [r for r in rows
+               if r['experiment_id'].strip().lower() == exp_token and
+               r['esm_id'].strip().lower() == esm_token.lower()]
+    if len(matches) != 1:
+        raise ValueError(
+            f"Could not match run name '{run_name}' to a unique experiment "
+            f"in '{EXPERIMENTS_CSV}'. Run directories must be named "
+            "'<experiment>_<ESM>' (or just '<experiment>' for ocx), e.g.: "
+            f"{', '.join(valid)}. Use --run_name to override the directory "
+            "name.")
+    return matches[0]
+
+
+def _run_name_from_output_dir(mali_output_dir):
+    """Name of the run directory: the parent of the 'output' directory."""
+    path = os.path.abspath(mali_output_dir.rstrip('/'))
+    if os.path.basename(path) == 'output':
+        path = os.path.dirname(path)
+    return os.path.basename(path)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "-e",
-        "--exp_name",
-        dest="exp",
-        required=True,
-        help="ISMIP7 experiment name (e.g., C001)",
+        "--run_name",
+        dest="run_name",
+        required=False,
+        help=(
+            "Run name '<experiment>_<ESM>' (e.g., historical_CESM2-WACCM) "
+            "used to look up the experiment in experiments.csv. Default: "
+            "name of the run directory containing --mali_output_dir."
+        ),
     )
     parser.add_argument(
         "-i",
@@ -132,7 +152,7 @@ def main():
         "--input_state_pattern",
         dest="input_state_pattern",
         required=False,
-        default='output_state_*.nc',
+        default='output_2d_*.nc',
         help=(
             "Filename pattern within --mali_output_dir for one or more "
             "MALI 2d state output files (default: 'output_state_*.nc')."
@@ -143,7 +163,7 @@ def main():
         "--input_flux_pattern",
         dest="input_flux_pattern",
         required=False,
-        default='output_flux_*.nc',
+        default='output_2d_*.nc',
         help=(
             "Filename pattern within --mali_output_dir for one or more "
             "MALI 2d flux output files (default: 'output_flux_*.nc')."
@@ -153,11 +173,60 @@ def main():
         "--process_sets",
         dest="process_sets",
         nargs='+',
-        choices=['1d', 'state', 'flux'],
-        default=['1d', 'state', 'flux'],
+        choices=['1d', 'state', 'flux', 'restart'],
+        default=['1d', 'state', 'flux', 'restart'],
         help=(
             "Which variable sets to process. Provide one or more of: "
-            "'1d', 'state', 'flux'. Default processes all three."
+            "'1d', 'state', 'flux', 'restart'. Default processes all. "
+            "'restart' (litempavg) needs restart files; omit it if they "
+            "are not available."
+        ),
+    )
+    parser.add_argument(
+        "--restart_dir",
+        dest="restart_dir",
+        required=False,
+        help=(
+            "Directory containing MALI restart files (default: parent "
+            "directory of --mali_output_dir)."
+        ),
+    )
+    parser.add_argument(
+        "--input_restart_pattern",
+        dest="input_restart_pattern",
+        required=False,
+        default='rst.*-01-01.nc',
+        help=(
+            "Filename pattern within --restart_dir for Jan. 1 restart "
+            "files (default: 'rst.*-01-01.nc')."
+        ),
+    )
+    parser.add_argument(
+        "--fix_ligroundf_thickness_division",
+        dest="fix_ligroundf",
+        action="store_true",
+        default=False,
+        help=(
+            "Fallback for runs made with an older MALI version whose "
+            "avgGroundingLineFlux was divided by the grounded-cell thickness "
+            "(huge values at thin ice). Undoes the division, approximately: "
+            "flux * thickness * dvEdge / areaCell, using the mean of the "
+            "thickness in the flux files and in any restart files within "
+            "each output period. Cells beyond +/-10 kg m-2 s-1 (not "
+            "recoverable) are set to 0. Requires --input_mesh and applies to "
+            "the 'flux' set. Restarts are looked up in --restart_dir with "
+            "--ligroundf_restart_pattern (optional). Off by default."
+        ),
+    )
+    parser.add_argument(
+        "--ligroundf_restart_pattern",
+        dest="ligroundf_restart_pattern",
+        required=False,
+        default='rst.*.nc',
+        help=(
+            "Filename pattern within --restart_dir for the restart files "
+            "whose thickness is used by --fix_ligroundf_thickness_division "
+            "(default: 'rst.*.nc', i.e. all restarts)."
         ),
     )
     parser.add_argument(
@@ -213,6 +282,16 @@ def main():
              f"output filenames/metadata. Choices: {list(GROUP_METADATA.keys())}",
     )
     parser.add_argument(
+        "--reference_geoid",
+        dest="reference_geoid",
+        default="EIGEN-6C4",
+        help=(
+            "Value of the reference_geoid attribute written on deltag: "
+            "'EIGEN-6C4' (BedMachine, default), 'GL04C' (Bedmap), or "
+            "'custom, defined by ref_geoid variable'."
+        ),
+    )
+    parser.add_argument(
         "--ism_member_id",
         dest="ism_member_id",
         required=False,
@@ -237,6 +316,7 @@ def main():
     process_1d = '1d' in args.process_sets
     process_state = 'state' in args.process_sets
     process_flux = 'flux' in args.process_sets
+    process_restart = 'restart' in args.process_sets
 
     if not os.path.isdir(args.mali_output_dir):
         raise FileNotFoundError(
@@ -251,7 +331,6 @@ def main():
     global_stats_files = sorted(glob.glob(global_stats_glob))
     check_global_stats_files(global_stats_files)
 
-    check_exp_name(args.exp)
     check_res(args.res_ismip7_grid, args.icesheet)
 
     ismip7_grid_file = (
@@ -261,7 +340,13 @@ def main():
         args.icesheet, args.res_ismip7_grid, ismip7_grid_file
     )
 
-    experiment_info = _load_experiment_info(args.exp)
+    run_name = args.run_name or _run_name_from_output_dir(
+        args.mali_output_dir)
+    experiment_info = find_experiment(run_name)
+    set_counter = experiment_info['set_counter'].strip()
+    print(f"Run name '{run_name}' matches experiment {set_counter}: "
+          f"experiment_id={experiment_info['experiment_id'].strip()}, "
+          f"esm_id={experiment_info['esm_id'].strip()}")
     experiment_id = experiment_info['experiment_id'].strip().lower()
     esm_id = experiment_info['esm_id'].strip()
 
@@ -269,7 +354,7 @@ def main():
 
     metadata = {
         'set_id': 'CORE',
-        'set_counter': args.exp,
+        'set_counter': set_counter,
         'domain_id': args.icesheet,
         'source_id': group_meta['group_nickname'],
         'ism_id': DEFAULT_ISM_ID,
@@ -292,7 +377,7 @@ def main():
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
-    if process_state or process_flux:
+    if process_state or process_flux or process_restart:
 
         method_remap = args.method_remap
         if args.reuse_mapping_file is not None:
@@ -333,7 +418,7 @@ def main():
 
     print("---Processing remapping file complete---\n")
 
-    output_path = os.path.join(args.output_path, args.exp)
+    output_path = os.path.join(args.output_path, set_counter)
     print(f"Using output path: {output_path}")
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
@@ -354,6 +439,7 @@ def main():
             ismip7_grid_file,
             output_path,
             metadata,
+            reference_geoid=args.reference_geoid,
         )
         print("---Processing state file(s) complete---\n")
     else:
@@ -362,16 +448,57 @@ def main():
     if process_flux:
         print("\n---Processing flux file(s)---")
         flux_files = sorted(glob.glob(flux_glob))
+        gl_restart_files = None
+        if args.fix_ligroundf:
+            if not args.input_file_mesh:
+                raise ValueError(
+                    "--input_mesh is required with "
+                    "--fix_ligroundf_thickness_division.")
+            restart_dir = args.restart_dir or os.path.dirname(
+                os.path.abspath(args.mali_output_dir.rstrip('/')))
+            gl_restart_files = sorted(glob.glob(
+                os.path.join(restart_dir, args.ligroundf_restart_pattern)))
+            if not gl_restart_files:
+                print("No restart files match "
+                      f"{restart_dir}/{args.ligroundf_restart_pattern}; "
+                      "using only the thickness in the flux files.")
+            print("NOTE: ligroundf is corrected approximately for the old "
+                  "division by thickness.")
         process_flux_pipeline(
             flux_files,
             mapping_file,
             ismip7_grid_file,
             output_path,
             metadata,
+            input_file_mesh=args.input_file_mesh,
+            gl_restart_files=gl_restart_files,
+            fix_gl_flux=args.fix_ligroundf,
         )
         print("---Processing flux file(s) complete---\n")
     else:
         print("--- Skipping flux variable processing (not selected).")
+
+    if process_restart:
+        print("\n---Processing restart file(s)---")
+        if args.input_file_mesh is None:
+            raise ValueError(
+                "--input_mesh is required for restart processing "
+                "(layerThicknessFractions).")
+        restart_dir = args.restart_dir or os.path.dirname(
+            os.path.abspath(args.mali_output_dir.rstrip('/')))
+        restart_files = sorted(glob.glob(
+            os.path.join(restart_dir, args.input_restart_pattern)))
+        process_restart_pipeline(
+            restart_files,
+            args.input_file_mesh,
+            mapping_file,
+            ismip7_grid_file,
+            output_path,
+            metadata,
+        )
+        print("---Processing restart file(s) complete---\n")
+    else:
+        print("--- Skipping restart variable processing (not selected).")
 
     print("---All processing complete---")
 

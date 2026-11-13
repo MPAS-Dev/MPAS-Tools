@@ -1,3 +1,4 @@
+import resource
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from subprocess import check_call
 import os
@@ -7,7 +8,6 @@ from netCDF4 import num2date
 import xarray as xr
 
 
-VALID_EXPERIMENTS = [f"C{i:03d}" for i in range(1, 12)]
 VALID_RESOLUTIONS = {
     'AIS': [2, 4, 8, 16],
     'GrIS': [1, 2, 4, 8, 16],
@@ -60,27 +60,6 @@ def check_res(res, icesheet):
             f"Invalid resolution '{res_int}' km for {icesheet}. "
             f"Valid resolutions (km) are: {valid}")
     print(f"Resolution {res_int} km is valid for {icesheet}.")
-
-
-def check_exp_name(exp):
-    """
-    Validate the ISMIP7 experiment name.
-
-    Parameters
-    ----------
-    exp : str
-        Experiment name to validate (e.g. 'C001').
-
-    Raises
-    ------
-    ValueError
-        If the experiment name is not in the list of valid experiments.
-    """
-    if exp not in VALID_EXPERIMENTS:
-        raise ValueError(
-            f"Invalid experiment name '{exp}'. "
-            f"Valid experiments are: {', '.join(VALID_EXPERIMENTS)}")
-    print(f"Experiment name '{exp}' is valid.")
 
 
 def get_time_range(globalstats_files):
@@ -304,14 +283,7 @@ def build_mapping_file(mali_mesh_file,
           "for ismip7 grid and mali mesh...")
 
     # create a scripfile for ismip7 grid
-    script_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)),
-        "..", "..", "..",
-        "conda_package", "mesh_tools", "create_SCRIP_files",
-        "create_SCRIP_file_from_planar_rectangular_grid.py"
-    )
-    script_path = os.path.abspath(script_path)
-    args = ["python", script_path,
+    args = ["create_scrip_file_from_planar_rectangular_grid",
             "--input", ismip7_grid_file,
             "--scrip", ismip7_scripfile,
             "--proj", ismip7_projection,
@@ -351,8 +323,14 @@ def build_mapping_file(mali_mesh_file,
                  "-i", "-64bit_offset",
                  "--dst_regional", "--src_regional"])
 
+    # ESMF_RegridWeightGen segfaults on large meshes with the default 8 MB
+    # stack limit.  Raise it for the child process (srun propagates it).
+    def _raise_stack_limit():
+        soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+        resource.setrlimit(resource.RLIMIT_STACK, (hard, hard))
+
     print(f"Running remapping command: {' '.join(args)}")
-    check_call(args)
+    check_call(args, preexec_fn=_raise_stack_limit)
 
     # remove the temporary scripfiles once the mapping file is generated
     print("Removing the temporary mesh and scripfiles...")

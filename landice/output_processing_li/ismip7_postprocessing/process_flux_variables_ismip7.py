@@ -9,7 +9,12 @@ import numpy as np
 from subprocess import check_call
 import os
 from validate import validate_mali_files
+from gl_flux_thickness_fix_ismip7 import correct_gl_flux
 from output_naming import build_output_filename
+from netcdf_utils import to_masked, zero_where_invalid
+import datetime
+from time_utils import (get_calendar, decimal_years, days_at_jan1,
+                        days_to_ismip7_time)
 
 
 EXPECTED_FLUX_VARIABLES = [
@@ -24,6 +29,9 @@ REQUIRED_FLUX_REMAPPING_VARIABLES = [
     'avgSMBFlux', 'avgFloatingBMBFlux', 'avgGroundedBMBFlux',
     'avgDhdt', 'avgCalvingFlux', 'avgFaceMeltFlux',
     'avgGroundingLineFlux',
+    # sftgrf/sftflf are used only to set the basal mass balance fluxes to 0
+    # where there is no grounded/floating ice
+    'sftgrf', 'sftflf',
     # masks not currently used - see note below in process_flux_vars
     #'ice_mask', 'floating_mask', 'dynamic_mask', 'grounded_mask',
     #'gl_mask'
@@ -39,7 +47,8 @@ def check_flux_files(files):
     validate_mali_files(files, EXPECTED_FLUX_VARIABLES, label='flux')
 
 
-def process_flux_vars(files, tmp_file):
+def process_flux_vars(files, tmp_file, input_file_mesh=None,
+                      gl_restart_files=None, fix_gl_flux=False):
     """
     Prepare flux files into a temporary file for remapping.
     This is very simple, because flux variables are already
@@ -51,6 +60,14 @@ def process_flux_vars(files, tmp_file):
         Sorted list of MALI flux output file paths.
     tmp_file : str
         Temporary output file name.
+    input_file_mesh : str, optional
+        MALI file with the time-invariant basalHeatFlux, used for hfgeoubed.
+    gl_restart_files : list of str, optional
+        Used only with fix_gl_flux: restart files whose thickness is
+        averaged with the flux-record thickness.
+    fix_gl_flux : bool
+        If True, undo the division by grounded-cell thickness in
+        avgGroundingLineFlux (for runs made with older MALI versions).
     """
     ds_flux = xr.open_mfdataset(files, combine='nested',
                                 concat_dim='Time',
@@ -75,13 +92,54 @@ def process_flux_vars(files, tmp_file):
     #ds_flux['grounded_mask'] = (ds_flux['cellMask'][:, :] * 0 + 1) - ds_flux['floating_mask']
     #ds_flux['gl_mask'] = (ds_flux['cellMask'][:, :] & 256) / 256
 
+    # same definitions as in the state processing
+    cell_mask = ds_flux['cellMask'][:, :]
+    floating = (cell_mask & 4) / 4
+    dynamic = (cell_mask & 2) / 2
+    ds_flux['sftflf'] = floating * dynamic
+    ds_flux['sftgrf'] = (1.0 - floating) * dynamic
+
     ds_flux['avgCalvingFlux'] = -1.0 * ds_flux['avgCalvingFlux']  # flip sign of calving flux to match ISMIP7 convention
     ds_flux['avgFaceMeltFlux'] = -1.0 * ds_flux['avgFaceMeltFlux']  # flip sign of face melt flux to match ISMIP7 convention
-    print("avgGroundingLineFlux min, max values before clipping: ",
-          np.nanmin(ds_flux['avgGroundingLineFlux'].values),
-          np.nanmax(ds_flux['avgGroundingLineFlux'].values))
-    ds_flux['avgGroundingLineFlux'] = ds_flux['avgGroundingLineFlux'].clip(min=0.0)
+    if fix_gl_flux:
+        if input_file_mesh is None:
+            raise ValueError("--input_mesh is required to correct "
+                             "ligroundf.")
+        if 'thickness' not in ds_flux:
+            raise ValueError("thickness is required in the flux files to "
+                             "correct ligroundf.")
+        print("Correcting avgGroundingLineFlux for division by thickness.")
+        gl = correct_gl_flux(ds_flux['avgGroundingLineFlux'].values,
+                             ds_flux['thickness'].values,
+                             ds_flux['daysSinceStart'].values,
+                             input_file_mesh, gl_restart_files)
+        print("Corrected grounding-line flux min, max (kg m-2 s-1): ",
+              np.nanmin(gl), np.nanmax(gl))
+        ds_flux['avgGroundingLineFlux'] = xr.DataArray(
+            gl, dims=('Time', 'nCells'))
+
+    # MALI reports the grounding-line flux as positive from grounded to
+    # floating ice; ISMIP7 uses a mass-change convention (like calving), so
+    # loss from the grounded ice is negative.  Negative MALI values (flow
+    # onto ice rumples) become small positive values and are kept.
+    ds_flux['avgGroundingLineFlux'] = -1.0 * ds_flux['avgGroundingLineFlux']
     ds_flux['avgDhdt'] = ds_flux['avgDhdt'] / (3600.0 * 24.0 * 365.0)  # convert from m/yr to m/s
+
+    # hfgeoubed is constant in time, so no averaging is needed; broadcast it
+    # to the flux times so it follows the FL time convention like the fluxes.
+    have_hfgeo = False
+    if input_file_mesh is not None:
+        with xr.open_dataset(input_file_mesh, decode_cf=False) as ds_mesh:
+            if 'basalHeatFlux' in ds_mesh:
+                hfgeo = ds_mesh['basalHeatFlux'].isel(Time=0).values
+                ntime = ds_flux.sizes['Time']
+                ds_flux['hfgeoubed'] = xr.DataArray(
+                    np.broadcast_to(hfgeo, (ntime,) + hfgeo.shape).copy(),
+                    dims=('Time', 'nCells'), attrs={'units': 'W m-2'})
+                have_hfgeo = True
+            else:
+                print(f"basalHeatFlux not found in {input_file_mesh}; "
+                      "hfgeoubed will not be written.")
 
     missing = [
         var for var in REQUIRED_FLUX_REMAPPING_VARIABLES
@@ -94,7 +152,10 @@ def process_flux_vars(files, tmp_file):
         )
 
     # subset to only required variables to keep file small for remapping
-    ds_flux_out = ds_flux[REQUIRED_FLUX_REMAPPING_VARIABLES]
+    keep = list(REQUIRED_FLUX_REMAPPING_VARIABLES)
+    if have_hfgeo:
+        keep.append('hfgeoubed')
+    ds_flux_out = ds_flux[keep]
     # remove the first time step (which is always 0)
     time_mask = ~np.isclose(ds_flux_out['daysSinceStart'].values, 0.0, rtol=0.0)
     if not np.any(time_mask):
@@ -109,7 +170,8 @@ def process_flux_vars(files, tmp_file):
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
                               var_units, var_varname, remapped_mali_flux_file,
-                              ismip7_grid_file, output_path, metadata):
+                              ismip7_grid_file, output_path, metadata,
+                              calendar='gregorian'):
     """
     mali_var_name: variable name on MALI side
     ismip7_var_name: variable name required by ISMIP7
@@ -132,33 +194,34 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]
-    refYear = int(simulationStartDate[0:4])
-    decYears = refYear + daysSinceStart / 365.0
-    years_flux = np.floor(decYears)
+    decYears = decimal_years(daysSinceStart, simulationStartDate, calendar)
+    years_flux = np.floor(decYears + 1.0e-6)
 
     # Flux outputs are annual means over each calendar year.
     # Bounds are Jan 1 of the previous year through Jan 1 of the year indexed.
-    timeBndsMin = (years_flux - refYear - 1.0) * 365.0
-    timeBndsMax = (years_flux - refYear) * 365.0
-    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
-    input_units = f'days since {simulationStartDate}'
-    output_units = 'days since 1850-01-01'
-    timeBndsMin = date2num(
-        num2date(timeBndsMin, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
-    timeBndsMax = date2num(
-        num2date(timeBndsMax, units=input_units, calendar='noleap'),
-        units=output_units,
-        calendar='standard',
-    )
+    timeBndsMin = days_at_jan1(years_flux - 1, simulationStartDate, calendar)
+    timeBndsMax = days_at_jan1(years_flux, simulationStartDate, calendar)
+    # Convert from the MALI model-calendar time axis to Gregorian days since
+    # 1850-01-01
+    timeBndsMin = days_to_ismip7_time(timeBndsMin, simulationStartDate,
+                                      calendar)
+    timeBndsMax = days_to_ismip7_time(timeBndsMax, simulationStartDate,
+                                      calendar)
     if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
         return
     var_mali = data.variables[mali_var_name][:, :, :]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.nan
+    # Basal mass balance fluxes must be exactly 0 where the corresponding area
+    # fraction (as written to the sftgrf/sftflf files, in float32) is 0.
+    bmb_mask_name = {'libmassbfgr': 'sftgrf',
+                     'libmassbffl': 'sftflf'}.get(ismip7_var_name)
+    if bmb_mask_name is not None:
+        bmb_mask = np.asarray(data.variables[bmb_mask_name][:, :, :],
+                              dtype=np.float32)
+        bmb_mask = np.where(np.abs(bmb_mask) > 1e30, np.float32(0.0),
+                            bmb_mask)
     timeSteps, latN, lonN = np.shape(var_mali)
 
     output_filename = build_output_filename(
@@ -189,8 +252,23 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         #mask = data.variables['ice_mask'][i, :, :]
         tmp = var_mali[i, :, :]
         #tmp[mask == 0] = np.nan
-        dataValues[i, :, :] = tmp
-        timeValues[i] = (timeBndsMin[i] + timeBndsMax[i]) / 2.0
+        if bmb_mask_name is not None:
+            tmp = np.where(bmb_mask[i, :, :] > 0, tmp, 0.0)
+        # all ISMIP7 2D flux variables must be 0 (not missing) where there is
+        # no ice
+        if ismip7_var_name == 'hfgeoubed':
+            # defined throughout the domain, missing only outside it
+            dataValues[i, :, :] = to_masked(tmp)
+        else:
+            dataValues[i, :, :] = zero_where_invalid(tmp)
+        # ISMIP7 convention for flux (FL) variables: the time coordinate is
+        # Jul 1 of the nominal (averaging) year, which is the year before the
+        # Jan 1 record that holds the annual mean.  The averaging interval is
+        # given by time_bounds.
+        nominal_year = int(years_flux[i]) - 1
+        timeValues[i] = date2num(datetime.datetime(nominal_year, 7, 1),
+                                 units='days since 1850-01-01',
+                                 calendar='standard')
         timebndsValues[i, 0] = timeBndsMin[i]
         timebndsValues[i, 1] = timeBndsMax[i]
 
@@ -222,7 +300,8 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
 
 
 def generate_output_2d_flux_vars(file_remapped_mali_flux,
-                                 ismip7_grid_file, output_path, metadata):
+                                 ismip7_grid_file, output_path, metadata,
+                                 calendar='gregorian'):
     """
     file_remapped_mali_flux: flux output file on mali mesh remapped
     onto the ismip7 grid
@@ -232,13 +311,28 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
     output_path: path to which the final output files are saved
     """
 
+    # ----------- hfgeoubed ------------------
+    with Dataset(file_remapped_mali_flux, 'r') as ds_check:
+        have_hfgeo = 'hfgeoubed' in ds_check.variables
+    if have_hfgeo:
+        print("* Writing hfgeoubed")
+        write_netcdf_2d_flux_vars('hfgeoubed', 'hfgeoubed',
+                                  'upward_geothermal_heat_flux_in_land_ice',
+                                  'W m-2', 'Geothermal heat flux',
+                                  file_remapped_mali_flux,
+                                  ismip7_grid_file, output_path, metadata,
+                                  calendar=calendar)
+    else:
+        print("* Skipping hfgeoubed (no basalHeatFlux from input mesh file)")
+
     # ----------- acabf ------------------
     print("* Writing acabf")
     write_netcdf_2d_flux_vars('avgSMBFlux', 'acabf',
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- libmassbffl ------------------
     print("* Writing libmassbffl")
@@ -247,7 +341,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath floating ice',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- libmassbfgr ------------------
     print("* Writing libmassbfgr")
@@ -256,7 +351,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath grounded ice',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- dlithkdt ------------------
     write_netcdf_2d_flux_vars('avgDhdt', 'dlithkdt',
@@ -264,7 +360,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'm s-1',
                               'Ice thickness imbalance',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- licalvf ------------------
     print("* Writing licalvf")
@@ -273,7 +370,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Calving flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- lifmassbf ------------------
     print("* Writing lifmassbf")
@@ -283,7 +381,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Ice front melt flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
     # ----------- ligroundf ------------------
     print("* Writing ligroundf")
@@ -292,11 +391,13 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Grounding line flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, output_path, metadata)
+                              ismip7_grid_file, output_path, metadata,
+                              calendar=calendar)
 
 
 def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
-                          output_path, metadata):
+                          output_path, metadata, input_file_mesh=None,
+                          gl_restart_files=None, fix_gl_flux=False):
     """
     Full flux-variable processing pipeline:
     validate, concatenate, remap, write.
@@ -313,14 +414,26 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
         Directory for output files.
     metadata : dict
         Submission metadata dict with time_range computed from globalStats.
+    input_file_mesh : str, optional
+        MALI file with basalHeatFlux, used for hfgeoubed.
+    gl_restart_files : list of str, optional
+        Restart files whose thickness is used when fix_gl_flux is True.
+    fix_gl_flux : bool
+        Correct the native avgGroundingLineFlux for the old division by
+        grounded-cell thickness.
     """
     metadata = metadata.copy()
 
     check_flux_files(flux_files)
 
+    with xr.open_dataset(flux_files[0], decode_cf=False) as ds_first:
+        calendar = get_calendar(ds_first.attrs)
+    print(f"Model calendar: {calendar}")
+
     print("Preparing concatenated flux file for remapping.")
     tmp_flux_file = 'tmp_flux.nc'
-    process_flux_vars(flux_files, tmp_flux_file)
+    process_flux_vars(flux_files, tmp_flux_file, input_file_mesh,
+                      gl_restart_files, fix_gl_flux)
 
     print("Remapping flux file.")
     remapped_file_flux = 'remapped_flux.nc'
@@ -333,7 +446,7 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
     print("Writing processed and remapped flux fields to ISMIP7 file format.")
     generate_output_2d_flux_vars(remapped_file_flux,
                                  ismip7_grid_file,
-                                 output_path, metadata)
+                                 output_path, metadata, calendar=calendar)
 
     #os.remove(tmp_flux_file)
     #os.remove(remapped_file_flux)
