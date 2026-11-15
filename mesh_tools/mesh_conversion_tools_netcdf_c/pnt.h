@@ -420,7 +420,9 @@ double planarTriangleArea(const pnt &A, const pnt &B, const pnt &C){/*{{{*/
     // Semi-perimeter of TRI(ABC)
     s = (a + b + c) * 0.5;
 
-    return sqrt(s * (s - a) * (s - b) * (s - c));
+    // A degenerate triangle can give a product that round-off makes slightly
+    // negative, and the square root of that is NaN rather than zero.
+    return sqrt(std::max(s * (s - a) * (s - b) * (s - c), 0.0));
 }/*}}}*/
 double sphericalTriangleArea(const pnt &A, const pnt &B, const pnt &C){/*{{{*/
     /*
@@ -435,7 +437,9 @@ double sphericalTriangleArea(const pnt &A, const pnt &B, const pnt &C){/*{{{*/
     c = C.sphereDistance(A);
     s = 0.5*(a+b+c);
 
-    tanqe = sqrt(tan(0.5*s)*tan(0.5*(s-a))*tan(0.5*(s-b))*tan(0.5*(s-c)));
+    // A degenerate triangle can give a product that round-off makes slightly
+    // negative, and the square root of that is NaN rather than zero.
+    tanqe = sqrt(std::max(tan(0.5*s)*tan(0.5*(s-a))*tan(0.5*(s-b))*tan(0.5*(s-c)), 0.0));
     e = 4.*atan(tanqe);
 
     return e;
