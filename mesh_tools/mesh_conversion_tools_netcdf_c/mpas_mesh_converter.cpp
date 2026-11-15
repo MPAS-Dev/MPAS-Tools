@@ -1416,7 +1416,7 @@ int orderVertexArrays(){/*{{{*/
     pnt normal;
     pnt cross;
     pnt vec1, vec2;
-    pnt cell_loc, edge_loc1, edge_loc2;
+    pnt cell_loc, dir_point1, dir_point2;
     double mag1, mag2, min_angle, angle;
     double dvEdge, dot, area;
     bool fixed_area;
@@ -1458,13 +1458,13 @@ int orderVertexArrays(){/*{{{*/
         for(j = 0; j < edgesOnVertex.at(iVertex).size(); j++){
             edge1 = edgesOnVertex.at(iVertex).at(j);
 
-            edge_loc1 = edgeDirectionPoint(iVertex, edge1);
+            dir_point1 = edgeDirectionPoint(iVertex, edge1);
 
-            // Fix edge1 periodicity
+            // Fix dir_point1 periodicity
             if(!spherical){
-                edge_loc1.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
+                dir_point1.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
             }
-            vec1 = edge_loc1 - vertices.at(iVertex);
+            vec1 = dir_point1 - vertices.at(iVertex);
 
             mag1 = vec1.magnitude();
             min_angle = 2.0*M_PI;
@@ -1475,13 +1475,13 @@ int orderVertexArrays(){/*{{{*/
             for(k = j+1; k < edgesOnVertex.at(iVertex).size(); k++){
                 edge2 = edgesOnVertex.at(iVertex).at(k);
 
-                edge_loc2 = edgeDirectionPoint(iVertex, edge2);
+                dir_point2 = edgeDirectionPoint(iVertex, edge2);
 
-                // Fix edge2 periodicity
+                // Fix dir_point2 periodicity
                 if(!spherical){
-                    edge_loc2.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
+                    dir_point2.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
                 }
-                vec2 = edge_loc2 - vertices.at(iVertex);
+                vec2 = dir_point2 - vertices.at(iVertex);
                 mag2 = vec2.magnitude();
 
                 cross = vec1.cross(vec2);
