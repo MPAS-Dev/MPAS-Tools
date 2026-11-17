@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.attrs.add\_mesh\_attrs
+=======================================
+
+.. currentmodule:: mpas_tools.mesh.attrs
+
+.. autofunction:: add_mesh_attrs

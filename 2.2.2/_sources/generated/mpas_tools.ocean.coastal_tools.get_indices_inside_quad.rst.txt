@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.coastal\_tools.get\_indices\_inside\_quad
+===========================================================
+
+.. currentmodule:: mpas_tools.ocean.coastal_tools
+
+.. autofunction:: get_indices_inside_quad

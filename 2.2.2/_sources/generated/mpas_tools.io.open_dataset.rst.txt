@@ -1,0 +1,6 @@
+﻿mpas\_tools.io.open\_dataset
+============================
+
+.. currentmodule:: mpas_tools.io
+
+.. autofunction:: open_dataset

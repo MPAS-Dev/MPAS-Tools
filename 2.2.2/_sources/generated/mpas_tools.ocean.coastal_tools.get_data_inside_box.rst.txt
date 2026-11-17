@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.coastal\_tools.get\_data\_inside\_box
+=======================================================
+
+.. currentmodule:: mpas_tools.ocean.coastal_tools
+
+.. autofunction:: get_data_inside_box

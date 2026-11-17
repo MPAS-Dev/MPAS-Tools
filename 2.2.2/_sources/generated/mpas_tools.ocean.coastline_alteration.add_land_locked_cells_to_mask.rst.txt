@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.coastline\_alteration.add\_land\_locked\_cells\_to\_mask
+==========================================================================
+
+.. currentmodule:: mpas_tools.ocean.coastline_alteration
+
+.. autofunction:: add_land_locked_cells_to_mask

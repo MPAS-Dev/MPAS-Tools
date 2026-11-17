@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.attrs.cf\_conventions
+======================================
+
+.. currentmodule:: mpas_tools.mesh.attrs
+
+.. autofunction:: cf_conventions

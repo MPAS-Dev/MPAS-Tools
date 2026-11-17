@@ -1,0 +1,6 @@
+﻿mpas\_tools.merge\_grids.merge\_grids
+=====================================
+
+.. currentmodule:: mpas_tools.merge_grids
+
+.. autofunction:: merge_grids
