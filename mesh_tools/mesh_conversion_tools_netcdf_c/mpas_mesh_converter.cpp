@@ -92,6 +92,7 @@ int buildUnorderedCellConnectivity();
 int firstOrderingVerticesOnCell();
 int buildCompleteCellMask();
 int buildEdges();
+pnt edgeDirectionPoint(const int iVertex, const int iEdge);
 int orderVertexArrays();
 int orderCellArrays();
 int buildAreas();
@@ -1377,6 +1378,32 @@ int buildEdges(){/*{{{*/
 
     return 0;
 }/*}}}*/
+pnt edgeDirectionPoint(const int iVertex, const int iEdge){/*{{{*/
+    /*
+     * edgeDirectionPoint returns a point in the direction of edge iEdge as seen
+     *      from vertex iVertex, for ordering the edges around the vertex: the
+     *      vertex at the other end of the edge, or the edge's location if there
+     *      is no other vertex.
+     *
+     *      The edge's location will not do in general.  It is where the edge
+     *      crosses the line between its cells, and if the triangle the vertex
+     *      is the circumcenter of is obtuse, that point lies behind the vertex
+     *      for the edge opposite the obtuse angle.  Ordering by it then
+     *      reverses that edge's place around the vertex, and each kite in
+     *      kiteAreasOnVertex pairs a cell with an edge it doesn't share.
+     */
+    int otherVertex;
+
+    otherVertex = verticesOnEdge.at(iEdge).at(0);
+    if(otherVertex == iVertex){
+        otherVertex = verticesOnEdge.at(iEdge).at(1);
+    }
+
+    if(otherVertex != -1){
+        return vertices.at(otherVertex);
+    }
+    return edges.at(iEdge);
+}/*}}}*/
 int orderVertexArrays(){/*{{{*/
     /*
      * orderVertexArrays builds and orders the connectivity arrays for vertices.
@@ -1389,7 +1416,7 @@ int orderVertexArrays(){/*{{{*/
     pnt normal;
     pnt cross;
     pnt vec1, vec2;
-    pnt cell_loc, edge_loc1, edge_loc2;
+    pnt cell_loc, dir_point1, dir_point2;
     double mag1, mag2, min_angle, angle;
     double dvEdge, dot, area;
     bool fixed_area;
@@ -1431,13 +1458,13 @@ int orderVertexArrays(){/*{{{*/
         for(j = 0; j < edgesOnVertex.at(iVertex).size(); j++){
             edge1 = edgesOnVertex.at(iVertex).at(j);
 
-            edge_loc1 = edges.at(edge1);
+            dir_point1 = edgeDirectionPoint(iVertex, edge1);
 
-            // Fix edge1 periodicity
+            // Fix dir_point1 periodicity
             if(!spherical){
-                edge_loc1.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
+                dir_point1.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
             }
-            vec1 = edge_loc1 - vertices.at(iVertex);
+            vec1 = dir_point1 - vertices.at(iVertex);
 
             mag1 = vec1.magnitude();
             min_angle = 2.0*M_PI;
@@ -1448,13 +1475,13 @@ int orderVertexArrays(){/*{{{*/
             for(k = j+1; k < edgesOnVertex.at(iVertex).size(); k++){
                 edge2 = edgesOnVertex.at(iVertex).at(k);
 
-                edge_loc2 = edges.at(edge2);
+                dir_point2 = edgeDirectionPoint(iVertex, edge2);
 
-                // Fix edge2 periodicity
+                // Fix dir_point2 periodicity
                 if(!spherical){
-                    edge_loc2.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
+                    dir_point2.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
                 }
-                vec2 = edge_loc2 - vertices.at(iVertex);
+                vec2 = dir_point2 - vertices.at(iVertex);
                 mag2 = vec2.magnitude();
 
                 cross = vec1.cross(vec2);
