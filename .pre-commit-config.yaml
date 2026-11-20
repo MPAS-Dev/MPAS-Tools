@@ -6,8 +6,11 @@ repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
+    # pcd.yaml is an exact copy of E3SM's share/pcd.yaml
     -   id: trailing-whitespace
+        exclude: "conda_package/mpas_tools/constants/pcd.yaml"
     -   id: end-of-file-fixer
+        exclude: "conda_package/mpas_tools/constants/pcd.yaml"
 
   # Can run individually with `flynt [file]` or `flynt [source]`
 -   repo: https://github.com/ikamensh/flynt

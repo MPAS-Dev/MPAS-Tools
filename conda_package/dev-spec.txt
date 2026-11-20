@@ -22,6 +22,7 @@ pyamg
 pyevtk
 pyproj
 python-igraph>=0.10.0
+ruamel.yaml
 scikit-image!=0.20.0
 scipy
 shapely>=2.0,<3.0
