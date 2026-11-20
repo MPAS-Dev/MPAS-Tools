@@ -183,8 +183,16 @@ Interpolation
 
    interp_bilin
 
-CIME constants
---------------
+Physical constants
+------------------
+
+.. currentmodule:: mpas_tools.constants
+
+.. autosummary::
+   :toctree: generated/
+
+   get_constant
+   get_pcd_version
 
 .. currentmodule:: mpas_tools.cime
 

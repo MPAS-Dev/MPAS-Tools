@@ -66,6 +66,7 @@ dependencies = [
     "pyamg",
     "pyevtk",
     "pyproj",
+    "ruamel.yaml",
     "igraph >=0.10.0",
     "scikit-image !=0.20.0",
     "scipy",

@@ -1,2 +1,3 @@
 recursive-include mpas_tools *.xml
 recursive-include mpas_tools *.cmake
+recursive-include mpas_tools *.yaml
