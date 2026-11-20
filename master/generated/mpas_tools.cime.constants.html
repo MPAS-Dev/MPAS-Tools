@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="mpas_tools.landice.visualization" href="mpas_tools.landice.visualization.html" />
-    <link rel="prev" title="mpas_tools.mesh.interpolation.interp_bilin" href="mpas_tools.mesh.interpolation.interp_bilin.html" />
+    <link rel="prev" title="mpas_tools.constants.get_pcd_version" href="mpas_tools.constants.get_pcd_version.html" />
     <link href="../_static/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -50,7 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">Physical Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../io.html">I/O Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
@@ -100,7 +100,9 @@
 <li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
-<li class="toctree-l3 current"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../api.html#physical-constants">Physical constants</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.constants.get_constant.html">mpas_tools.constants.get_constant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.constants.get_pcd_version.html">mpas_tools.constants.get_pcd_version</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.cime.constants</a></li>
 </ul>
 </li>
@@ -149,13 +151,19 @@
              
   <section id="module-mpas_tools.cime.constants">
 <span id="mpas-tools-cime-constants"></span><h1>mpas_tools.cime.constants<a class="headerlink" href="#module-mpas_tools.cime.constants" title="Link to this heading"></a></h1>
+<p>Constants with the names and values of those in E3SM’s <code class="docutils literal notranslate"><span class="pre">shr_const_mod</span></code></p>
+<p>E3SM sets most of the constants in <code class="docutils literal notranslate"><span class="pre">share/util/shr_const_mod.F90</span></code> from the
+Physical Constants Dictionary (PCD).  Here, they are taken from the same PCD
+in <code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.constants.pcd</span></code>, in the same way, so that their values
+match E3SM’s.  New code should prefer
+<a class="reference internal" href="mpas_tools.constants.get_constant.html#mpas_tools.constants.get_constant" title="mpas_tools.constants.get_constant"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.constants.get_constant()</span></code></a> with PCD names.</p>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mpas_tools.mesh.interpolation.interp_bilin.html" class="btn btn-neutral float-left" title="mpas_tools.mesh.interpolation.interp_bilin" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.constants.get_pcd_version.html" class="btn btn-neutral float-left" title="mpas_tools.constants.get_pcd_version" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="mpas_tools.landice.visualization.html" class="btn btn-neutral float-right" title="mpas_tools.landice.visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

@@ -1,0 +1,6 @@
+﻿mpas\_tools.constants.get\_constant
+===================================
+
+.. currentmodule:: mpas_tools.constants
+
+.. autofunction:: get_constant

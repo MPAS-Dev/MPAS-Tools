@@ -50,7 +50,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cime.html">Physical Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">I/O Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
@@ -176,7 +176,9 @@
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.interpolation.interp_bilin.html">mpas_tools.mesh.interpolation.interp_bilin</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#cime-constants">CIME constants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#physical-constants">Physical constants</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.constants.get_constant.html">mpas_tools.constants.get_constant</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.constants.get_pcd_version.html">mpas_tools.constants.get_pcd_version</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.cime.constants.html">mpas_tools.cime.constants</a></li>
 </ul>
 </li>
@@ -599,12 +601,22 @@ the documentation.</p>
 </tbody>
 </table>
 </section>
-<section id="cime-constants">
-<h3>CIME constants<a class="headerlink" href="#cime-constants" title="Link to this heading"></a></h3>
+<section id="physical-constants">
+<h3>Physical constants<a class="headerlink" href="#physical-constants" title="Link to this heading"></a></h3>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.constants.get_constant.html#mpas_tools.constants.get_constant" title="mpas_tools.constants.get_constant"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_constant</span></code></a>(name)</p></td>
+<td><p>Get a constant from the Physical Constants Dictionary (PCD).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.constants.get_pcd_version.html#mpas_tools.constants.get_pcd_version" title="mpas_tools.constants.get_pcd_version"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_pcd_version</span></code></a>()</p></td>
+<td><p>Get the version of the PCD that MPAS-Tools packages.</p></td>
+</tr>
+</tbody>
+</table>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.cime.constants.html#module-mpas_tools.cime.constants" title="mpas_tools.cime.constants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">constants</span></code></a></p></td>
-<td><p></p></td>
+<td><p>Constants with the names and values of those in E3SM's <code class="docutils literal notranslate"><span class="pre">shr_const_mod</span></code></p></td>
 </tr>
 </tbody>
 </table>

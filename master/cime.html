@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CIME Constants &mdash; mpas_tools master documentation</title>
+  <title>Physical Constants &mdash; mpas_tools master documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
@@ -50,7 +50,12 @@
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">CIME Constants</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Physical Constants</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pcd-constants">PCD constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cime-constants">CIME constants</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#updating-the-pcd">Updating the PCD</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">I/O Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
@@ -114,7 +119,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">CIME Constants</li>
+      <li class="breadcrumb-item active">Physical Constants</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/cime.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -124,29 +129,71 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="cime-constants">
-<span id="cime-mod"></span><h1>CIME Constants<a class="headerlink" href="#cime-constants" title="Link to this heading"></a></h1>
-<p>The module <a class="reference internal" href="generated/mpas_tools.cime.constants.html#module-mpas_tools.cime.constants" title="mpas_tools.cime.constants"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.cime.constants</span></code></a> contains constants that are in
-sync with <a class="reference external" href="https://github.com/ESMCI/cime">CIME</a>, which provides infrastructure
-and utilities for Earth System Models such at E3SM.  Currently, we sync only
-those constants given numerical values in CIME, not those that are derivied
-from other constants.  Constants are checked against their values on CIME’s
-master branch during tests of the rattler-build package build.</p>
-<p>Some of the constants most likely to be useful in MPAS-Tools, COMPASS and other
-related projects are:</p>
+  <section id="physical-constants">
+<span id="cime-mod"></span><h1>Physical Constants<a class="headerlink" href="#physical-constants" title="Link to this heading"></a></h1>
+<p>E3SM takes its physical constants from the
+<a class="reference external" href="https://icams-us.github.io/PhysicalConstantsDictionary/">Physical Constants Dictionary (PCD)</a>,
+a YAML file found at <code class="docutils literal notranslate"><span class="pre">share/pcd.yaml</span></code> in E3SM.  MPAS-Tools packages a copy of
+this file in <code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.constants</span></code>.  During tests of the rattler-build
+package build, the copy is checked against the one on E3SM’s <code class="docutils literal notranslate"><span class="pre">master</span></code>
+branch.</p>
+<section id="pcd-constants">
+<span id="id1"></span><h2>PCD constants<a class="headerlink" href="#pcd-constants" title="Link to this heading"></a></h2>
+<p>Use <a class="reference internal" href="generated/mpas_tools.constants.get_constant.html#mpas_tools.constants.get_constant" title="mpas_tools.constants.get_constant"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.constants.get_constant()</span></code></a> to get a constant by its PCD
+name:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_constant</span>
+
+<span class="n">earth_radius</span> <span class="o">=</span> <span class="n">get_constant</span><span class="p">(</span><span class="s1">'mean_radius'</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Some of the constants are given by a <code class="docutils literal notranslate"><span class="pre">formula</span></code> in terms of other constants,
+rather than a <code class="docutils literal notranslate"><span class="pre">value</span></code>.  These are evaluated in double precision, in the same
+way as in the compiled models.
+<a class="reference internal" href="generated/mpas_tools.constants.get_pcd_version.html#mpas_tools.constants.get_pcd_version" title="mpas_tools.constants.get_pcd_version"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.constants.get_pcd_version()</span></code></a> gives the version of the
+packaged PCD.</p>
+</section>
+<section id="cime-constants">
+<span id="id2"></span><h2>CIME constants<a class="headerlink" href="#cime-constants" title="Link to this heading"></a></h2>
+<p>The dictionary <code class="docutils literal notranslate"><span class="pre">constants</span></code> in <a class="reference internal" href="generated/mpas_tools.cime.constants.html#module-mpas_tools.cime.constants" title="mpas_tools.cime.constants"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.cime.constants</span></code></a> contains
+constants with the names and values of those in E3SM’s
+<code class="docutils literal notranslate"><span class="pre">share/util/shr_const_mod.F90</span></code>.  E3SM sets most of these from the PCD, and
+MPAS-Tools does the same.  A few, such as <code class="docutils literal notranslate"><span class="pre">SHR_CONST_SDAY</span></code> and
+<code class="docutils literal notranslate"><span class="pre">SHR_CONST_KARMAN</span></code>, are still set in <code class="docutils literal notranslate"><span class="pre">shr_const_mod</span></code> itself.  The constants
+that <code class="docutils literal notranslate"><span class="pre">shr_const_mod</span></code> derives from other constants (e.g. <code class="docutils literal notranslate"><span class="pre">SHR_CONST_RGAS</span></code>)
+are not included.  During tests of the rattler-build package build, each
+constant is checked against <code class="docutils literal notranslate"><span class="pre">shr_const_mod</span></code> on E3SM’s <code class="docutils literal notranslate"><span class="pre">master</span></code> branch.</p>
+<p>Some of the constants most likely to be useful in MPAS-Tools, Polaris and
+other related projects are (with their PCD names):</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CDAY</span></code> - sec in calendar day (s)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_REARTH</span></code> - radius of Earth (m)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_G</span></code> - acceleration of gravity (m/s^2)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOFW</span></code> - density of fresh water (kg/m^3)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOSW</span></code> - density of sea water (kg/m^3)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOICE</span></code> - density of ice (kg/m^3)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPFW</span></code> - specific heat of fresh water (J/kg/K)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPSW</span></code> - specific heat of sea water (J/kg/K)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPICE</span></code> - specific heat of fresh ice (J/kg/K)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_LATICE</span></code> - latent heat of fusion (J/kg)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_LATVAP</span></code> - latent heat of evaporation (J/kg)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CDAY</span></code> - sec in calendar day (s), <code class="docutils literal notranslate"><span class="pre">seconds_per_day</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_REARTH</span></code> - radius of Earth (m), <code class="docutils literal notranslate"><span class="pre">mean_radius</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_G</span></code> - acceleration of gravity (m/s^2),
+<code class="docutils literal notranslate"><span class="pre">standard_acceleration_of_gravity</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOFW</span></code> - density of fresh water (kg/m^3),
+<code class="docutils literal notranslate"><span class="pre">pure_water_density_reference</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOSW</span></code> - density of sea water (kg/m^3),
+<code class="docutils literal notranslate"><span class="pre">seawater_density_reference</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOICE</span></code> - density of ice (kg/m^3),
+<code class="docutils literal notranslate"><span class="pre">sea_ice_density_reference</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPFW</span></code> - specific heat of fresh water (J/kg/K),
+<code class="docutils literal notranslate"><span class="pre">pure_water_specific_heat_capacity_reference</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPSW</span></code> - specific heat of sea water (J/kg/K),
+<code class="docutils literal notranslate"><span class="pre">seawater_specific_heat_capacity_reference</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPICE</span></code> - specific heat of fresh ice (J/kg/K),
+<code class="docutils literal notranslate"><span class="pre">sea_ice_specific_heat_capacity_reference</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_LATICE</span></code> - latent heat of fusion (J/kg),
+<code class="docutils literal notranslate"><span class="pre">latent_heat_of_fusion_reference</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_LATVAP</span></code> - latent heat of evaporation (J/kg),
+<code class="docutils literal notranslate"><span class="pre">latent_heat_of_vaporization_reference</span></code></p></li>
 </ul>
+</section>
+<section id="updating-the-pcd">
+<h2>Updating the PCD<a class="headerlink" href="#updating-the-pcd" title="Link to this heading"></a></h2>
+<p>When E3SM updates its PCD, copy E3SM’s <code class="docutils literal notranslate"><span class="pre">share/pcd.yaml</span></code> to
+<code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/constants/pcd.yaml</span></code>.  If E3SM has also changed
+which PCD constants <code class="docutils literal notranslate"><span class="pre">shr_const_mod.F90</span></code> uses, update
+<code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/cime/constants.py</span></code> to match.</p>
+</section>
 </section>
 
 
