@@ -147,6 +147,17 @@ constructs a vertical coordinate for a transect and computes interpolation
 weights that can be used in ``interp_mpas_to_transect_nodes()`` to performed
 linear interpolation.
 
+The transect is a slice through triangular prisms, one for each edge of each
+MPAS cell, with the cell center and the edge's two vertices as corners. Layer
+interfaces are computed at cell centers from ``bottomDepth`` and
+``layerThickness``. At each vertex, an interface lies at the
+kite-area-weighted average of that interface over the adjacent cells in which
+it is valid (with a small adjustment where this would put an interface below
+the one beneath it). Interfaces vary linearly along each side of a triangle,
+so a transect node, where the transect crosses a side, takes a linear
+combination of the interfaces at the two ends of that side. Levels that are
+valid on only one side of a node end in a vertical wall there.
+
 The function
 :py:func:`mpas_tools.ocean.viz.transect.interp_mpas_to_transect_cells()`
 interpolates an MPAS-Ocean DataArray to transect cells, keeping constant values

@@ -78,16 +78,7 @@ def compute_transect(
             x, y, ds_tris, ds_horiz_mesh, triangle_tree
         )
 
-    # mask horizontal transect to valid cells (max_level_cell >= 0)
-    cell_indices = ds_horiz_transect.horizCellIndices
-    seg_mask = max_level_cell.isel(nCells=cell_indices).values >= 0
-    node_mask = np.zeros(ds_horiz_transect.sizes['nNodes'], dtype=bool)
-    node_mask[0:-1] = seg_mask
-    node_mask[1:] = np.logical_or(node_mask[1:], seg_mask)
-
-    ds_horiz_transect = ds_horiz_transect.isel(
-        nSegments=seg_mask, nNodes=node_mask
-    )
+    ds_horiz_transect = _mask_land_segments(ds_horiz_transect, max_level_cell)
 
     ds_transect = find_transect_levels_and_weights(
         ds_horiz_transect=ds_horiz_transect,
@@ -118,6 +109,21 @@ def find_transect_levels_and_weights(
     Also, compute interpolation weights such that observations at points on the
     original transect and with vertical coordinate ``transectZ`` can be
     bilinearly interpolated to the nodes of the transect.
+
+    The transect is a slice through triangular prisms, one for each edge of
+    each MPAS cell, with the cell center and the edge's two vertices as
+    corners.  Layer interfaces are computed at cell centers from
+    ``bottom_depth`` and ``layer_thickness``.  At a vertex, each interface
+    lies at the kite-area-weighted average of that interface over the
+    adjacent cells in which it is valid.  If this would put an interface
+    below the one beneath it (as can happen where the same interface lies
+    at very different depths in neighboring cells), the interfaces at that
+    vertex are replaced by the closest non-increasing ones in the
+    least-squares sense.  Interfaces vary linearly along each side of a
+    triangle, so a transect node, where the transect crosses a side,
+    takes a linear combination of the interfaces at the two ends of that
+    side.  Levels that are valid in only one of the two segments adjacent
+    to a node end in a vertical wall at that node.
 
     Parameters
     ----------
@@ -155,9 +161,16 @@ def find_transect_levels_and_weights(
             - ``validCells``, ``validNodes``: which transect cells and nodes
               are valid (above the bathymetry and below the sea surface)
 
-            - zTransectNode: the vertical height of each triangle node
-            - ssh, zSeaFloor: the sea-surface height and sea-floor height at
-              each node of each transect segment
+            - ``zTransectNode``: the elevation of each transect node, at
+              layer interfaces (even ``nVertNodes`` indices) and the
+              middles of layers (odd indices).  Where a level is not valid
+              in either segment adjacent to a node, it has zero thickness
+              at that node.
+            - ``ssh``, ``zSeafloor``: the elevation of the top (sea surface
+              or ice draft) and bottom (seafloor) of the valid layers in the
+              segments adjacent to each node, the higher top and lower
+              bottom where the two segments differ.  These are NaN at nodes
+              between invalid segments.
 
             - ``cellIndices``: the MPAS-Ocean cell of a given transect segment
             - ``levelIndices``: the MPAS-Ocean vertical level of a given
@@ -399,111 +412,54 @@ def interp_transect_grid_to_transect_nodes(ds_transect, da):
     return da_nodes
 
 
-def _get_horiz_at_interp(field, interp_horiz_cell_indices):
-    field_interp = field.isel(nCells=interp_horiz_cell_indices)
-    return field_interp
+def _mask_land_segments(ds_horiz_transect, max_level_cell):
+    """
+    Trim segments in land cells (``max_level_cell < 0``) from the ends of
+    the transect and mark those in between as invalid, keeping a segment
+    between each pair of adjacent nodes
+    """
+    cell_indices = ds_horiz_transect.horizCellIndices.values
+    ocean = cell_indices >= 0
+    ocean[ocean] = max_level_cell.values[cell_indices[ocean]] >= 0
+    if not np.any(ocean):
+        raise ValueError('The transect does not cross any ocean cells.')
 
-
-def _get_horiz_and_mask_at_interp(
-    field, interp_horiz_cell_indices, cell_mask_interp
-):
-    field_interp = _get_horiz_at_interp(field, interp_horiz_cell_indices)
-
-    field_interp = field_interp.where(cell_mask_interp, 0.0)
-    return field_interp
-
-
-def _get_interp_level_weights(
-    valid_cells,
-    n_horiz_nodes,
-    n_vert_levels,
-    interp_horiz_cell_indices,
-    interp_horiz_cell_weights,
-    cell_mask_interp,
-):
-    valid_nodes = np.zeros((n_horiz_nodes, n_vert_levels), dtype=bool)
-    valid_nodes[0:-1, :] = valid_cells
-    valid_nodes[1:, :] = np.logical_or(valid_nodes[1:, :], valid_cells)
-
-    valid_nodes = xr.DataArray(
-        dims=('nHorizNodes', 'nVertLevels'), data=valid_nodes
+    first = np.argmax(ocean)
+    end = len(ocean) - np.argmax(ocean[::-1])
+    ds_horiz_transect = ds_horiz_transect.isel(
+        nSegments=slice(first, end), nNodes=slice(first, end + 1)
     )
-
-    interp_mask = np.logical_and(
-        interp_horiz_cell_indices > 0, cell_mask_interp
-    )
-
-    interp_level_weights = interp_mask * interp_horiz_cell_weights
-    weight_sum = interp_level_weights.sum(dim='nHorizWeights')
-
-    valid_weights = valid_nodes.broadcast_like(interp_level_weights)
-    interp_level_weights = (interp_level_weights / weight_sum).where(
-        valid_weights
-    )
-
-    return interp_level_weights
-
-
-def _get_interp_interface_weights(
-    valid_cells,
-    n_horiz_nodes,
-    n_vert_levels,
-    interp_horiz_cell_indices,
-    interp_horiz_cell_weights,
-    cell_interface_interp,
-):
-    valid_nodes = np.zeros((n_horiz_nodes, n_vert_levels + 1), dtype=bool)
-    valid_nodes[0:-1, 0:-1] = valid_cells
-    valid_nodes[1:, 0:-1] = np.logical_or(valid_nodes[1:, 0:-1], valid_cells)
-    valid_nodes[0:-1, 1:] = np.logical_or(valid_nodes[0:-1, 1:], valid_cells)
-    valid_nodes[1:, 1:] = np.logical_or(valid_nodes[1:, 1:], valid_cells)
-
-    valid_nodes = xr.DataArray(
-        dims=('nHorizNodes', 'nVertLevelsP1'), data=valid_nodes
-    )
-
-    interp_mask = np.logical_and(
-        interp_horiz_cell_indices > 0, cell_interface_interp
-    )
-
-    interp_interface_weights = interp_mask * interp_horiz_cell_weights
-    weight_sum = interp_interface_weights.sum(dim='nHorizWeights')
-
-    valid_weights = valid_nodes.broadcast_like(interp_interface_weights)
-    interp_interface_weights = (interp_interface_weights / weight_sum).where(
-        valid_weights
-    )
-
-    return interp_interface_weights
-
-
-def _get_vert_coord_at_interp_cells(
-    layer_thickness, bottom_depth, interp_horiz_cell_indices, cell_mask_interp
-):
-    bottom_depth_interp = _get_horiz_at_interp(
-        bottom_depth, interp_horiz_cell_indices
-    )
-    layer_thickness_interp = _get_horiz_and_mask_at_interp(
-        layer_thickness, interp_horiz_cell_indices, cell_mask_interp
-    )
-
-    ssh_interp = -bottom_depth_interp + layer_thickness_interp.sum(
-        dim='nVertLevels'
-    )
-
-    return ssh_interp, layer_thickness_interp
-
-
-def _interp_horiz(field_at_interp, interp_weights):
-    field_transect = (field_at_interp * interp_weights).sum(
-        dim='nHorizWeights'
-    )
-    return field_transect
+    land = ~ocean[first:end]
+    if np.any(land):
+        ds_horiz_transect = ds_horiz_transect.copy()
+        for var_name in [
+            'horizCellIndices',
+            'horizTriangleIndices',
+            'horizTriangleNodeIndices',
+        ]:
+            var = ds_horiz_transect[var_name]
+            values = var.values.copy()
+            values[land, ...] = -1
+            ds_horiz_transect[var_name] = (var.dims, values)
+    return ds_horiz_transect
 
 
 def _add_vert_coord_and_interp_data(
     ds_transect, layer_thickness, bottom_depth, min_level_cell, max_level_cell
 ):
+    """
+    Add the vertical coordinate of the transect and the indices and weights
+    for interpolating MPAS-Ocean fields to transect nodes.
+
+    Each MPAS cell is made up of triangular prisms, one per edge, with the
+    cell center and the edge's two vertices as corners.  Layer interfaces
+    are known at cell centers.  At a vertex, each interface lies at the
+    kite-area-weighted average of that interface in the adjacent cells in
+    which it is valid.  Along each side of a triangle, interfaces vary
+    linearly, so the interfaces at a transect node, where the transect
+    crosses a triangle side, are a linear combination of those at the two
+    ends of that side.  Fields are interpolated to nodes in the same way.
+    """
     n_horiz_nodes = ds_transect.sizes['nHorizNodes']
     n_segments = ds_transect.sizes['nSegments']
     n_vert_levels = layer_thickness.sizes['nVertLevels']
@@ -513,165 +469,137 @@ def _add_vert_coord_and_interp_data(
     assert n_horiz_nodes == n_segments + 1
 
     interp_horiz_cell_indices = ds_transect.interpHorizCellIndices
-    interp_horiz_cell_weights = ds_transect.interpHorizCellWeights
     cell_indices = ds_transect.horizCellIndices
-
-    cell_mask_interp = _get_cell_mask(
-        interp_horiz_cell_indices,
-        min_level_cell,
-        max_level_cell,
-        n_vert_levels,
-    )
 
     valid_cells = _get_cell_mask(
         cell_indices, min_level_cell, max_level_cell, n_vert_levels
     )
-
     valid_cells = valid_cells.transpose('nSegments', 'nVertLevels').values
 
-    interp_level_weights = _get_interp_level_weights(
-        valid_cells,
-        n_horiz_nodes,
-        n_vert_levels,
-        interp_horiz_cell_indices,
-        interp_horiz_cell_weights,
-        cell_mask_interp,
+    # the levels and interfaces that are valid in a segment adjacent to each
+    # node
+    valid_level_nodes = np.zeros((n_horiz_nodes, n_vert_levels), dtype=bool)
+    valid_level_nodes[0:-1, :] = valid_cells
+    valid_level_nodes[1:, :] = np.logical_or(
+        valid_level_nodes[1:, :], valid_cells
+    )
+    valid_interface_nodes = np.zeros(
+        (n_horiz_nodes, n_vert_levels + 1), dtype=bool
+    )
+    valid_interface_nodes[:, 0:-1] = valid_level_nodes
+    valid_interface_nodes[:, 1:] = np.logical_or(
+        valid_interface_nodes[:, 1:], valid_level_nodes
     )
 
-    (ssh_at_interp, layer_thickness_at_interp) = (
-        _get_vert_coord_at_interp_cells(
+    endpoints = _get_endpoint_cells_and_weights(
+        interp_horiz_cell_indices.values,
+        ds_transect.interpHorizCellWeights.values,
+    )
+
+    z_interface_cells, valid_level_cells, valid_interface_cells = (
+        _get_cell_interfaces(
+            endpoints['unique_cells'],
             layer_thickness,
             bottom_depth,
-            interp_horiz_cell_indices,
-            cell_mask_interp,
+            min_level_cell,
+            max_level_cell,
         )
     )
 
-    ssh_transect = _interp_horiz(ssh_at_interp, interp_horiz_cell_weights)
-    layer_thickness_transect = _interp_horiz(
-        layer_thickness_at_interp, interp_level_weights
+    # interfaces at the two ends of the triangle side each node lies on
+    z_interface_ends, _ = _average_over_valid_cells(
+        z_interface_cells, valid_interface_cells, endpoints
+    )
+    # a vertex average over different cells for different interfaces can
+    # put an interface below the one beneath it
+    z_interface_ends = z_interface_ends.reshape((-1, n_vert_levels + 1))
+    z_interface_ends = _make_non_increasing(z_interface_ends)
+    z_interface_ends = z_interface_ends.reshape(
+        (n_horiz_nodes, -1, n_vert_levels + 1)
     )
 
-    z_bot = ssh_transect - layer_thickness_transect.cumsum(dim='nVertLevels')
-    z_mid = z_bot + 0.5 * layer_thickness_transect
+    z_interface_nodes = _interp_ends_to_nodes(
+        z_interface_ends, endpoints['side_weights']
+    )
 
-    z_half_interfaces = [ssh_transect]
-    for z_index in range(n_vert_levels):
-        z_half_interfaces.extend(
-            [z_mid.isel(nVertLevels=z_index), z_bot.isel(nVertLevels=z_index)]
-        )
+    z_interface_nodes, ssh, z_seafloor = _fill_interfaces(
+        z_interface_nodes, valid_interface_nodes
+    )
 
-    z_half_interface = xr.concat(z_half_interfaces, dim='nVertNodes')
-    z_half_interface = z_half_interface.transpose('nHorizNodes', 'nVertNodes')
-
-    z_seafloor = ssh_transect - layer_thickness_transect.sum(dim='nVertLevels')
+    z_half_interface = np.zeros((n_horiz_nodes, 2 * n_vert_levels + 1))
+    z_half_interface[:, 0::2] = z_interface_nodes
+    z_half_interface[:, 1::2] = 0.5 * (
+        z_interface_nodes[:, 0:-1] + z_interface_nodes[:, 1:]
+    )
 
     valid_transect_cells = np.zeros(
         (n_segments, 2 * n_vert_levels), dtype=bool
     )
     valid_transect_cells[:, 0::2] = valid_cells
     valid_transect_cells[:, 1::2] = valid_cells
-    valid_transect_cells = xr.DataArray(
-        dims=('nSegments', 'nHalfLevels'), data=valid_transect_cells
-    )
 
     level_indices = np.zeros(2 * n_vert_levels, dtype=int)
     level_indices[0::2] = np.arange(n_vert_levels)
     level_indices[1::2] = np.arange(n_vert_levels)
-    level_indices = xr.DataArray(dims=('nHalfLevels',), data=level_indices)
 
     interface_indices = np.zeros(2 * n_vert_levels, dtype=int)
     interface_indices[0::2] = np.arange(n_vert_levels)
     interface_indices[1::2] = np.arange(1, n_vert_levels + 1)
-    interface_indices = xr.DataArray(
-        dims=('nHalfLevels',), data=interface_indices
-    )
 
-    ds_transect['zTransectNode'] = z_half_interface
-
-    ds_transect['ssh'] = ssh_transect
-    ds_transect['zSeafloor'] = z_seafloor
-
-    ds_transect['cellIndices'] = cell_indices
-    ds_transect['levelIndices'] = level_indices
-    ds_transect['interfaceIndices'] = interface_indices
-    ds_transect['validCells'] = valid_transect_cells
-
-    n_horiz_nodes = interp_horiz_cell_indices.sizes['nHorizNodes']
-    n_vert_levels = layer_thickness.sizes['nVertLevels']
     n_vert_nodes = 2 * n_vert_levels + 1
     n_vert_weights = 2
 
     interp_level_indices = -1 * np.ones(
         (n_vert_nodes, n_vert_weights), dtype=int
     )
-    interp_level_indices[1:, 0] = level_indices.values
-    interp_level_indices[0:-1, 1] = level_indices.values
-
-    interp_level_indices = xr.DataArray(
-        dims=('nVertNodes', 'nVertWeights'), data=interp_level_indices
-    )
+    interp_level_indices[1:, 0] = level_indices
+    interp_level_indices[0:-1, 1] = level_indices
 
     interp_interface_indices = -1 * np.ones(
         (n_vert_nodes, n_vert_weights), dtype=int
     )
-    interp_interface_indices[1:, 0] = interface_indices.values
-    interp_interface_indices[0:-1, 1] = interface_indices.values
+    interp_interface_indices[1:, 0] = interface_indices
+    interp_interface_indices[0:-1, 1] = interface_indices
 
-    interp_interface_indices = xr.DataArray(
-        dims=('nVertNodes', 'nVertWeights'), data=interp_interface_indices
+    # horizontal weights for fields on levels and on interfaces
+    _, horiz_level_weights = _average_over_valid_cells(
+        None, valid_level_cells, endpoints
     )
-
-    half_level_thickness = 0.5 * layer_thickness.isel(
-        nCells=interp_horiz_cell_indices, nVertLevels=interp_level_indices
-    )
-    half_level_thickness = half_level_thickness.where(
-        interp_level_indices >= 0, other=0.0
+    _, horiz_interface_weights = _average_over_valid_cells(
+        None, valid_interface_cells, endpoints
     )
 
-    # vertical weights are proportional to the half-level thickness
-    interp_half_level_weights = (
-        half_level_thickness
-        * interp_level_weights.isel(nVertLevels=interp_level_indices)
+    # vertical weights for fields on levels: linear in z between the middles
+    # of layers
+    vert_level_weights = _get_vert_level_weights(
+        z_interface_nodes, valid_level_nodes
+    )
+    interp_half_level_weights = _combine_horiz_and_vert_weights(
+        horiz_level_weights, vert_level_weights, interp_level_indices
     )
 
-    weight_sum = interp_half_level_weights.sum(
-        dim=('nHorizWeights', 'nVertWeights')
+    # vertical weights for fields on interfaces: the values at interfaces
+    # and their mean at the middles of layers
+    vert_interface_weights = np.zeros(
+        (n_horiz_nodes, n_vert_nodes, n_vert_weights)
     )
-    out_mask = (weight_sum > 0.0).broadcast_like(interp_half_level_weights)
-    interp_half_level_weights = (interp_half_level_weights / weight_sum).where(
-        out_mask
+    vert_interface_weights[:, 0::2, :] = (
+        0.5 * valid_interface_nodes[:, :, np.newaxis]
     )
-
-    interface_mask_interp = _get_interface_mask(
-        interp_horiz_cell_indices,
-        min_level_cell,
-        max_level_cell,
-        n_vert_levels,
+    vert_interface_weights[:, 0, :] = [0.0, 1.0] * valid_interface_nodes[
+        :, 0:1
+    ]
+    vert_interface_weights[:, -1, :] = [1.0, 0.0] * valid_interface_nodes[
+        :, -1:
+    ]
+    vert_interface_weights[:, 1::2, :] = (
+        0.5 * valid_level_nodes[:, :, np.newaxis]
     )
-
-    interp_interface_weights = _get_interp_interface_weights(
-        valid_cells,
-        n_horiz_nodes,
-        n_vert_levels,
-        interp_horiz_cell_indices,
-        interp_horiz_cell_weights,
-        interface_mask_interp,
+    interp_half_interface_weights = _combine_horiz_and_vert_weights(
+        horiz_interface_weights,
+        vert_interface_weights,
+        interp_interface_indices,
     )
-
-    # vertical weights are proportional to the half-level thickness
-    interp_half_interface_weights = (
-        half_level_thickness
-        * interp_interface_weights.isel(nVertLevelsP1=interp_interface_indices)
-    )
-
-    weight_sum = interp_half_interface_weights.sum(
-        dim=('nHorizWeights', 'nVertWeights')
-    )
-    out_mask = (weight_sum > 0.0).broadcast_like(interp_half_interface_weights)
-    interp_half_interface_weights = (
-        interp_half_interface_weights / weight_sum
-    ).where(out_mask)
 
     valid_nodes = np.zeros((n_horiz_nodes, n_vert_nodes), dtype=bool)
     valid_nodes[0:-1, 0:-1] = valid_transect_cells
@@ -685,16 +613,290 @@ def _add_vert_coord_and_interp_data(
         valid_nodes[1:, 1:], valid_transect_cells
     )
 
-    valid_nodes = xr.DataArray(
-        dims=('nHorizNodes', 'nVertNodes'), data=valid_nodes
+    ds_transect['zTransectNode'] = (
+        ('nHorizNodes', 'nVertNodes'),
+        z_half_interface,
+    )
+    ds_transect['ssh'] = (('nHorizNodes',), ssh)
+    ds_transect['zSeafloor'] = (('nHorizNodes',), z_seafloor)
+
+    ds_transect['cellIndices'] = cell_indices
+    ds_transect['levelIndices'] = (('nHalfLevels',), level_indices)
+    ds_transect['interfaceIndices'] = (('nHalfLevels',), interface_indices)
+    ds_transect['validCells'] = (
+        ('nSegments', 'nHalfLevels'),
+        valid_transect_cells,
     )
 
     ds_transect['interpCellIndices'] = interp_horiz_cell_indices
-    ds_transect['interpLevelIndices'] = interp_level_indices
-    ds_transect['interpLevelWeights'] = interp_half_level_weights
-    ds_transect['interpInterfaceIndices'] = interp_interface_indices
-    ds_transect['interpInterfaceWeights'] = interp_half_interface_weights
-    ds_transect['validNodes'] = valid_nodes
+    ds_transect['interpLevelIndices'] = (
+        ('nVertNodes', 'nVertWeights'),
+        interp_level_indices,
+    )
+    ds_transect['interpLevelWeights'] = (
+        ('nHorizNodes', 'nVertNodes', 'nHorizWeights', 'nVertWeights'),
+        interp_half_level_weights,
+    )
+    ds_transect['interpInterfaceIndices'] = (
+        ('nVertNodes', 'nVertWeights'),
+        interp_interface_indices,
+    )
+    ds_transect['interpInterfaceWeights'] = (
+        ('nHorizNodes', 'nVertNodes', 'nHorizWeights', 'nVertWeights'),
+        interp_half_interface_weights,
+    )
+    ds_transect['validNodes'] = (('nHorizNodes', 'nVertNodes'), valid_nodes)
+
+
+def _get_endpoint_cells_and_weights(
+    interp_horiz_cell_indices, interp_horiz_cell_weights
+):
+    """
+    Split the horizontal interpolation cells and weights of each node into
+    the two ends of the triangle side the node lies on.  Each end is either
+    a cell center (one cell) or a vertex (the cells sharing that vertex).
+    """
+    n_nodes, n_horiz_weights = interp_horiz_cell_indices.shape
+    if n_horiz_weights % 2 != 0:
+        raise ValueError(
+            f'Expected an even number of horizontal weights, one set for '
+            f'each end of a triangle side, but found {n_horiz_weights}.'
+        )
+    n_cells_per_end = n_horiz_weights // 2
+    shape = (n_nodes, 2, n_cells_per_end)
+    cells = interp_horiz_cell_indices.reshape(shape)
+    weights = interp_horiz_cell_weights.reshape(shape)
+
+    # the weight of each end along the side of the triangle.  It includes
+    # the weights of any missing cells (index -1) so that the ends' averages
+    # can be taken over existing cells only
+    side_weights = weights.sum(axis=2)
+
+    cell_exists = cells >= 0
+    unique_cells, unique_inverse = np.unique(
+        np.where(cell_exists, cells, 0), return_inverse=True
+    )
+    unique_inverse = unique_inverse.reshape(shape)
+
+    return dict(
+        cells=cells,
+        weights=np.where(cell_exists, weights, 0.0),
+        side_weights=side_weights,
+        cell_exists=cell_exists,
+        unique_cells=unique_cells,
+        unique_inverse=unique_inverse,
+    )
+
+
+def _get_cell_interfaces(
+    cells, layer_thickness, bottom_depth, min_level_cell, max_level_cell
+):
+    """
+    Get the elevations of layer interfaces at the centers of the given
+    cells, building up from the seafloor as MPAS-Ocean does, along with
+    which levels and interfaces are valid
+    """
+    n_vert_levels = layer_thickness.sizes['nVertLevels']
+    cells = xr.DataArray(cells, dims=('nCells',))
+    thickness = (
+        layer_thickness.isel(nCells=cells)
+        .transpose('nCells', 'nVertLevels')
+        .values
+    )
+    bottom = bottom_depth.isel(nCells=cells).values
+    min_level = min_level_cell.isel(nCells=cells).values
+    max_level = max_level_cell.isel(nCells=cells).values
+
+    level_indices = np.arange(n_vert_levels)
+    valid_levels = np.logical_and(
+        level_indices >= min_level[:, np.newaxis],
+        level_indices <= max_level[:, np.newaxis],
+    )
+    interface_indices = np.arange(n_vert_levels + 1)
+    valid_interfaces = np.logical_and(
+        interface_indices >= min_level[:, np.newaxis],
+        interface_indices <= max_level[:, np.newaxis] + 1,
+    )
+    valid_interfaces = np.logical_and(
+        valid_interfaces, (max_level >= min_level)[:, np.newaxis]
+    )
+
+    thickness = np.where(valid_levels, thickness, 0.0)
+    thickness_below = np.cumsum(thickness[:, ::-1], axis=1)[:, ::-1]
+    z_interface = np.zeros((len(cells), n_vert_levels + 1))
+    z_interface[:, 0:-1] = thickness_below
+    z_interface = z_interface - bottom[:, np.newaxis]
+    z_interface = np.where(valid_interfaces, z_interface, np.nan)
+
+    return z_interface, valid_levels, valid_interfaces
+
+
+def _average_over_valid_cells(field_cells, valid_cells, endpoints):
+    """
+    Average a field at each end of the triangle sides that nodes lie on,
+    using only the cells in which the field is valid.  Returns the averages
+    (if ``field_cells`` is not ``None``) and the weight of each cell in the
+    linear interpolation to the node.
+    """
+    inverse = endpoints['unique_inverse']
+    valid = np.logical_and(
+        endpoints['cell_exists'][..., np.newaxis], valid_cells[inverse]
+    )
+    weights = endpoints['weights'][..., np.newaxis] * valid
+    weight_sum = weights.sum(axis=2)
+    has_valid = weight_sum > 0.0
+    weights = weights / np.where(has_valid, weight_sum, 1.0)[:, :, np.newaxis]
+
+    field_ends = None
+    if field_cells is not None:
+        field = np.where(valid, field_cells[inverse], 0.0)
+        field_ends = (weights * field).sum(axis=2)
+        field_ends = np.where(has_valid, field_ends, np.nan)
+
+    # weights for interpolation to the node, flattened back to
+    # nHorizWeights
+    node_weights = endpoints['side_weights'][..., np.newaxis, np.newaxis] * (
+        weights
+    )
+    n_nodes = node_weights.shape[0]
+    node_weights = node_weights.reshape((n_nodes, -1, valid_cells.shape[1]))
+    return field_ends, node_weights
+
+
+def _interp_ends_to_nodes(field_ends, side_weights):
+    """
+    Interpolate linearly from the two ends of a triangle side to the node
+    that lies on it.  The result is NaN where the field is not valid at an
+    end with a nonzero weight.
+    """
+    use = side_weights > 0.0
+    contrib = np.where(
+        use[:, :, np.newaxis],
+        side_weights[:, :, np.newaxis] * field_ends,
+        0.0,
+    )
+    return contrib.sum(axis=1)
+
+
+def _make_non_increasing(z):
+    """
+    Make each row of ``z`` non-increasing (skipping NaNs) with the closest
+    such row in the least-squares sense
+    """
+    z_filled = _forward_fill(z)
+    rising = np.any(z_filled[:, 1:] > z_filled[:, 0:-1], axis=1)
+    for row in np.nonzero(rising)[0]:
+        finite = np.isfinite(z[row, :])
+        z[row, finite] = _pool_adjacent_violators(z[row, finite])
+    return z
+
+
+def _pool_adjacent_violators(values):
+    """
+    The non-increasing sequence closest to ``values`` in the least-squares
+    sense, found by pooling adjacent values that increase into their mean
+    """
+    means = []
+    counts = []
+    for value in values:
+        means.append(value)
+        counts.append(1)
+        while len(means) > 1 and means[-2] < means[-1]:
+            count = counts[-2] + counts[-1]
+            mean = (means[-2] * counts[-2] + means[-1] * counts[-1]) / count
+            means.pop()
+            counts.pop()
+            means[-1] = mean
+            counts[-1] = count
+    return np.repeat(means, counts)
+
+
+def _forward_fill(a):
+    """
+    Fill NaNs in each row with the closest preceding finite value
+    """
+    n_rows, n_cols = a.shape
+    indices = np.where(np.isfinite(a), np.arange(n_cols)[np.newaxis, :], 0)
+    np.maximum.accumulate(indices, axis=1, out=indices)
+    return a[np.arange(n_rows)[:, np.newaxis], indices]
+
+
+def _fill_interfaces(z_interface, valid_interfaces):
+    """
+    Give interfaces that are not valid at a node the elevation of the
+    closest valid interface, so that invalid layers have zero thickness, and
+    find the sea-surface height and seafloor elevation at each node: the top
+    and bottom of the valid layers in the adjacent segments
+    """
+    n_nodes = z_interface.shape[0]
+    any_valid = valid_interfaces.any(axis=1)
+    # nodes between invalid segments keep whatever interfaces are defined
+    mask = np.logical_or(valid_interfaces, ~any_valid[:, np.newaxis])
+    z = np.where(mask, z_interface, np.nan)
+    z = _forward_fill(z)
+    z = _forward_fill(z[:, ::-1])[:, ::-1]
+    z = np.where(np.isfinite(z), z, 0.0)
+
+    top = np.argmax(valid_interfaces, axis=1)
+    bottom = (
+        valid_interfaces.shape[1]
+        - 1
+        - np.argmax(valid_interfaces[:, ::-1], axis=1)
+    )
+    nodes = np.arange(n_nodes)
+    ssh = np.where(any_valid, z[nodes, top], np.nan)
+    z_seafloor = np.where(any_valid, z[nodes, bottom], np.nan)
+    return z, ssh, z_seafloor
+
+
+def _get_vert_level_weights(z_interface, valid_levels):
+    """
+    Vertical weights for interpolating fields on levels to transect nodes:
+    the level's value at the middle of a layer and linear interpolation
+    between the middles of adjacent valid layers at an interface
+    """
+    n_nodes, n_vert_levels = valid_levels.shape
+    n_vert_nodes = 2 * n_vert_levels + 1
+    thickness = z_interface[:, 0:-1] - z_interface[:, 1:]
+
+    weights = np.zeros((n_nodes, n_vert_nodes, 2))
+    weights[:, 1::2, 0] = 0.5 * valid_levels
+    weights[:, 1::2, 1] = 0.5 * valid_levels
+
+    # the level above and below each interface
+    above = np.zeros((n_nodes, n_vert_levels + 1), dtype=bool)
+    above[:, 1:] = valid_levels
+    below = np.zeros((n_nodes, n_vert_levels + 1), dtype=bool)
+    below[:, 0:-1] = valid_levels
+    thickness_above = np.zeros((n_nodes, n_vert_levels + 1))
+    thickness_above[:, 1:] = thickness
+    thickness_below = np.zeros((n_nodes, n_vert_levels + 1))
+    thickness_below[:, 0:-1] = thickness
+
+    both = np.logical_and(above, below)
+    total = thickness_above + thickness_below
+    # each middle is half a layer from the interface, so the weight of
+    # each layer is proportional to the thickness of the other
+    weight_above = np.where(
+        total > 0.0, thickness_below / np.where(total > 0.0, total, 1.0), 0.5
+    )
+    weights[:, 0::2, 0] = np.where(both, weight_above, above)
+    weights[:, 0::2, 1] = np.where(both, 1.0 - weight_above, below)
+    return weights
+
+
+def _combine_horiz_and_vert_weights(horiz_weights, vert_weights, indices):
+    """
+    Combine horizontal weights on each level or interface with vertical
+    weights into weights with dimensions nHorizNodes, nVertNodes,
+    nHorizWeights and nVertWeights
+    """
+    valid = indices >= 0
+    horiz = horiz_weights[:, :, np.where(valid, indices, 0)]
+    horiz = np.where(valid, horiz, 0.0)
+    # nHorizNodes, nHorizWeights, nVertNodes, nVertWeights
+    weights = horiz * vert_weights[:, np.newaxis, :, :]
+    return weights.transpose((0, 2, 1, 3))
 
 
 def _get_cell_mask(
@@ -713,25 +915,6 @@ def _get_cell_mask(
     cell_mask = np.logical_and(cell_mask, cell_indices >= 0)
 
     return cell_mask
-
-
-def _get_interface_mask(
-    cell_indices, min_level_cell, max_level_cell, n_vert_levels
-):
-    interface_indices = xr.DataArray(
-        data=np.arange(n_vert_levels + 1), dims='nVertLevelsP1'
-    )
-    min_level_cell = min_level_cell.isel(nCells=cell_indices)
-    max_level_cell = max_level_cell.isel(nCells=cell_indices)
-
-    interface_mask = np.logical_and(
-        interface_indices >= min_level_cell,
-        interface_indices <= max_level_cell + 1,
-    )
-
-    interface_mask = np.logical_and(interface_mask, cell_indices >= 0)
-
-    return interface_mask
 
 
 def _get_interface_segments(z_half_interface, d_node, valid_transect_cells):
@@ -789,63 +972,6 @@ def _get_cell_boundary_segments(ssh, z_seafloor, d_node, cell_indices):
     z_seg = xr.DataArray(dims=('nCellBoundaries', 'nVertBounds'), data=z_seg)
 
     return d_seg, z_seg
-
-
-def _get_interp_indices_and_weights(
-    layer_thickness,
-    interp_cell_indices,
-    interp_cell_weights,
-    level_indices,
-    valid_transect_cells,
-):
-    n_horiz_nodes = interp_cell_indices.sizes['nHorizNodes']
-    n_vert_levels = layer_thickness.sizes['nVertLevels']
-    n_vert_nodes = 2 * n_vert_levels + 1
-    n_vert_weights = 2
-
-    interp_level_indices = -1 * np.ones(
-        (n_vert_nodes, n_vert_weights), dtype=int
-    )
-    interp_level_indices[1:, 0] = level_indices.values
-    interp_level_indices[0:-1, 1] = level_indices.values
-
-    interp_level_indices = xr.DataArray(
-        dims=('nVertNodes', 'nVertWeights'), data=interp_level_indices
-    )
-
-    half_level_thickness = 0.5 * layer_thickness.isel(
-        nCells=interp_cell_indices, nVertLevels=interp_level_indices
-    )
-    half_level_thickness = half_level_thickness.where(
-        interp_level_indices >= 0, other=0.0
-    )
-
-    # vertical weights are proportional to the half-level thickness
-    interp_cell_weights = half_level_thickness * interp_cell_weights.isel(
-        nVertLevels=interp_level_indices
-    )
-
-    valid_nodes = np.zeros((n_horiz_nodes, n_vert_nodes), dtype=bool)
-    valid_nodes[0:-1, 0:-1] = valid_transect_cells
-    valid_nodes[1:, 0:-1] = np.logical_or(
-        valid_nodes[1:, 0:-1], valid_transect_cells
-    )
-    valid_nodes[0:-1, 1:] = np.logical_or(
-        valid_nodes[0:-1, 1:], valid_transect_cells
-    )
-    valid_nodes[1:, 1:] = np.logical_or(
-        valid_nodes[1:, 1:], valid_transect_cells
-    )
-
-    valid_nodes = xr.DataArray(
-        dims=('nHorizNodes', 'nVertNodes'), data=valid_nodes
-    )
-
-    weight_sum = interp_cell_weights.sum(dim=('nHorizWeights', 'nVertWeights'))
-    out_mask = (weight_sum > 0.0).broadcast_like(interp_cell_weights)
-    interp_cell_weights = (interp_cell_weights / weight_sum).where(out_mask)
-
-    return interp_level_indices, interp_cell_weights, valid_nodes
 
 
 def _add_vertical_interpolation_of_transect_points(ds_transect, z_transect):
