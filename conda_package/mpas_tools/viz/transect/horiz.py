@@ -955,7 +955,7 @@ def _sort_intersections(
     seg_nodes = np.array(seg_nodes_list, dtype=int)
 
     valid_nodes = np.ones(len(indices), dtype=bool)
-    valid_nodes[1:-1] = np.logical_or(seg_tris[0:-1] >= 0, seg_tris[1:] > 0)
+    valid_nodes[1:-1] = np.logical_or(seg_tris[0:-1] >= 0, seg_tris[1:] >= 0)
 
     x_out = x_out[indices]
     y_out = y_out[indices]
