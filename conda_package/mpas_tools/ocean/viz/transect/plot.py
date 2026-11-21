@@ -457,19 +457,18 @@ def _plot_interfaces(
             x_int, z_int, color=interface_color, linewidth=linewidth, zorder=2
         )
 
+    if ssh_color is not None or seafloor_color is not None:
+        x_seg, z_top, z_bot = _get_top_and_bottom_lines(ds_transect)
+
     if ssh_color is not None:
-        valid = ds_transect.validNodes.any(dim='nVertNodes')
-        x_ssh = 1e-3 * ds_transect.dNode.values
-        z_ssh = ds_transect.ssh.where(valid).values
-        ax.plot(x_ssh, z_ssh, color=ssh_color, linewidth=linewidth, zorder=4)
+        ax.plot(
+            1e-3 * x_seg, z_top, color=ssh_color, linewidth=linewidth, zorder=4
+        )
 
     if seafloor_color is not None:
-        valid = ds_transect.validNodes.any(dim='nVertNodes')
-        x_floor = 1e-3 * ds_transect.dNode.values
-        z_floor = ds_transect.zSeafloor.where(valid).values
         ax.plot(
-            x_floor,
-            z_floor,
+            1e-3 * x_seg,
+            z_bot,
             color=seafloor_color,
             linewidth=linewidth,
             zorder=5,
@@ -480,6 +479,31 @@ def _plot_interfaces(
         ax.spines['left'].set_linewidth(4 * linewidth)
         ax.spines['right'].set_color(end_color)
         ax.spines['right'].set_linewidth(4 * linewidth)
+
+
+def _get_top_and_bottom_lines(ds_transect):
+    """
+    Get lines along the top (sea surface or ice draft) and bottom (seafloor)
+    of the valid layers in each segment, with vertical steps between
+    segments where the top or bottom layer changes and breaks across
+    invalid segments
+    """
+    valid = ds_transect.validCells.values
+    z = ds_transect.zTransectNode.values
+    d = ds_transect.dNode.values
+    n_segments, n_half_levels = valid.shape
+
+    segments = np.arange(n_segments)
+    any_valid = valid.any(axis=1)
+    top = np.argmax(valid, axis=1)
+    bottom = n_half_levels - np.argmax(valid[:, ::-1], axis=1)
+
+    x_seg = np.stack([d[segments], d[segments + 1]], axis=1)
+    z_top = np.stack([z[segments, top], z[segments + 1, top]], axis=1)
+    z_bot = np.stack([z[segments, bottom], z[segments + 1, bottom]], axis=1)
+    z_top[~any_valid, :] = np.nan
+    z_bot[~any_valid, :] = np.nan
+    return x_seg.ravel(), z_top.ravel(), z_bot.ravel()
 
 
 def _plot_outline(
