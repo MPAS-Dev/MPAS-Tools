@@ -587,19 +587,18 @@
             <span class="n">x_int</span><span class="p">,</span> <span class="n">z_int</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">interface_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span>
         <span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">ssh_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">seafloor_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x_seg</span><span class="p">,</span> <span class="n">z_top</span><span class="p">,</span> <span class="n">z_bot</span> <span class="o">=</span> <span class="n">_get_top_and_bottom_lines</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">ssh_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">valid</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">validNodes</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nVertNodes'</span><span class="p">)</span>
-        <span class="n">x_ssh</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dNode</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">z_ssh</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">ssh</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_ssh</span><span class="p">,</span> <span class="n">z_ssh</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">ssh_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">x_seg</span><span class="p">,</span> <span class="n">z_top</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">ssh_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">4</span>
+        <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">seafloor_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">valid</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">validNodes</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nVertNodes'</span><span class="p">)</span>
-        <span class="n">x_floor</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dNode</span><span class="o">.</span><span class="n">values</span>
-        <span class="n">z_floor</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">zSeafloor</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
-            <span class="n">x_floor</span><span class="p">,</span>
-            <span class="n">z_floor</span><span class="p">,</span>
+            <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">x_seg</span><span class="p">,</span>
+            <span class="n">z_bot</span><span class="p">,</span>
             <span class="n">color</span><span class="o">=</span><span class="n">seafloor_color</span><span class="p">,</span>
             <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
             <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
@@ -610,6 +609,31 @@
         <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">'left'</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">linewidth</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">'right'</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">end_color</span><span class="p">)</span>
         <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">'right'</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">linewidth</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_top_and_bottom_lines</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Get lines along the top (sea surface or ice draft) and bottom (seafloor)</span>
+<span class="sd">    of the valid layers in each segment, with vertical steps between</span>
+<span class="sd">    segments where the top or bottom layer changes and breaks across</span>
+<span class="sd">    invalid segments</span>
+<span class="sd">    """</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">validCells</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">zTransectNode</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dNode</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">n_segments</span><span class="p">,</span> <span class="n">n_half_levels</span> <span class="o">=</span> <span class="n">valid</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="n">segments</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_segments</span><span class="p">)</span>
+    <span class="n">any_valid</span> <span class="o">=</span> <span class="n">valid</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="n">n_half_levels</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">valid</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">x_seg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">d</span><span class="p">[</span><span class="n">segments</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="n">segments</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">z_top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">z</span><span class="p">[</span><span class="n">segments</span><span class="p">,</span> <span class="n">top</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">segments</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">top</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">z_bot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">z</span><span class="p">[</span><span class="n">segments</span><span class="p">,</span> <span class="n">bottom</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">segments</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">bottom</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">z_top</span><span class="p">[</span><span class="o">~</span><span class="n">any_valid</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">z_bot</span><span class="p">[</span><span class="o">~</span><span class="n">any_valid</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">return</span> <span class="n">x_seg</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z_top</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">z_bot</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_plot_outline</span><span class="p">(</span>

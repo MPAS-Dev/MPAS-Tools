@@ -204,16 +204,7 @@
             <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">ds_tris</span><span class="p">,</span> <span class="n">ds_horiz_mesh</span><span class="p">,</span> <span class="n">triangle_tree</span>
         <span class="p">)</span>
 
-    <span class="c1"># mask horizontal transect to valid cells (max_level_cell &gt;= 0)</span>
-    <span class="n">cell_indices</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">horizCellIndices</span>
-    <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">max_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span><span class="o">.</span><span class="n">values</span> <span class="o">&gt;=</span> <span class="mi">0</span>
-    <span class="n">node_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nNodes'</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-    <span class="n">node_mask</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">seg_mask</span>
-    <span class="n">node_mask</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">node_mask</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">seg_mask</span><span class="p">)</span>
-
-    <span class="n">ds_horiz_transect</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
-        <span class="n">nSegments</span><span class="o">=</span><span class="n">seg_mask</span><span class="p">,</span> <span class="n">nNodes</span><span class="o">=</span><span class="n">node_mask</span>
-    <span class="p">)</span>
+    <span class="n">ds_horiz_transect</span> <span class="o">=</span> <span class="n">_mask_land_segments</span><span class="p">(</span><span class="n">ds_horiz_transect</span><span class="p">,</span> <span class="n">max_level_cell</span><span class="p">)</span>
 
     <span class="n">ds_transect</span> <span class="o">=</span> <span class="n">find_transect_levels_and_weights</span><span class="p">(</span>
         <span class="n">ds_horiz_transect</span><span class="o">=</span><span class="n">ds_horiz_transect</span><span class="p">,</span>
@@ -247,6 +238,21 @@
 <span class="sd">    Also, compute interpolation weights such that observations at points on the</span>
 <span class="sd">    original transect and with vertical coordinate ``transectZ`` can be</span>
 <span class="sd">    bilinearly interpolated to the nodes of the transect.</span>
+
+<span class="sd">    The transect is a slice through triangular prisms, one for each edge of</span>
+<span class="sd">    each MPAS cell, with the cell center and the edge's two vertices as</span>
+<span class="sd">    corners.  Layer interfaces are computed at cell centers from</span>
+<span class="sd">    ``bottom_depth`` and ``layer_thickness``.  At a vertex, each interface</span>
+<span class="sd">    lies at the kite-area-weighted average of that interface over the</span>
+<span class="sd">    adjacent cells in which it is valid.  If this would put an interface</span>
+<span class="sd">    below the one beneath it (as can happen where the same interface lies</span>
+<span class="sd">    at very different depths in neighboring cells), the interfaces at that</span>
+<span class="sd">    vertex are replaced by the closest non-increasing ones in the</span>
+<span class="sd">    least-squares sense.  Interfaces vary linearly along each side of a</span>
+<span class="sd">    triangle, so a transect node, where the transect crosses a side,</span>
+<span class="sd">    takes a linear combination of the interfaces at the two ends of that</span>
+<span class="sd">    side.  Levels that are valid in only one of the two segments adjacent</span>
+<span class="sd">    to a node end in a vertical wall at that node.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -284,9 +290,16 @@
 <span class="sd">            - ``validCells``, ``validNodes``: which transect cells and nodes</span>
 <span class="sd">              are valid (above the bathymetry and below the sea surface)</span>
 
-<span class="sd">            - zTransectNode: the vertical height of each triangle node</span>
-<span class="sd">            - ssh, zSeaFloor: the sea-surface height and sea-floor height at</span>
-<span class="sd">              each node of each transect segment</span>
+<span class="sd">            - ``zTransectNode``: the elevation of each transect node, at</span>
+<span class="sd">              layer interfaces (even ``nVertNodes`` indices) and the</span>
+<span class="sd">              middles of layers (odd indices).  Where a level is not valid</span>
+<span class="sd">              in either segment adjacent to a node, it has zero thickness</span>
+<span class="sd">              at that node.</span>
+<span class="sd">            - ``ssh``, ``zSeafloor``: the elevation of the top (sea surface</span>
+<span class="sd">              or ice draft) and bottom (seafloor) of the valid layers in the</span>
+<span class="sd">              segments adjacent to each node, the higher top and lower</span>
+<span class="sd">              bottom where the two segments differ.  These are NaN at nodes</span>
+<span class="sd">              between invalid segments.</span>
 
 <span class="sd">            - ``cellIndices``: the MPAS-Ocean cell of a given transect segment</span>
 <span class="sd">            - ``levelIndices``: the MPAS-Ocean vertical level of a given</span>
@@ -538,111 +551,54 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_horiz_at_interp</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">interp_horiz_cell_indices</span><span class="p">):</span>
-    <span class="n">field_interp</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">interp_horiz_cell_indices</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">field_interp</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_mask_land_segments</span><span class="p">(</span><span class="n">ds_horiz_transect</span><span class="p">,</span> <span class="n">max_level_cell</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Trim segments in land cells (``max_level_cell &lt; 0``) from the ends of</span>
+<span class="sd">    the transect and mark those in between as invalid, keeping a segment</span>
+<span class="sd">    between each pair of adjacent nodes</span>
+<span class="sd">    """</span>
+    <span class="n">cell_indices</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">horizCellIndices</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">ocean</span> <span class="o">=</span> <span class="n">cell_indices</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+    <span class="n">ocean</span><span class="p">[</span><span class="n">ocean</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_level_cell</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">cell_indices</span><span class="p">[</span><span class="n">ocean</span><span class="p">]]</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">ocean</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">'The transect does not cross any ocean cells.'</span><span class="p">)</span>
 
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_horiz_and_mask_at_interp</span><span class="p">(</span>
-    <span class="n">field</span><span class="p">,</span> <span class="n">interp_horiz_cell_indices</span><span class="p">,</span> <span class="n">cell_mask_interp</span>
-<span class="p">):</span>
-    <span class="n">field_interp</span> <span class="o">=</span> <span class="n">_get_horiz_at_interp</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">interp_horiz_cell_indices</span><span class="p">)</span>
-
-    <span class="n">field_interp</span> <span class="o">=</span> <span class="n">field_interp</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cell_mask_interp</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">field_interp</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_interp_level_weights</span><span class="p">(</span>
-    <span class="n">valid_cells</span><span class="p">,</span>
-    <span class="n">n_horiz_nodes</span><span class="p">,</span>
-    <span class="n">n_vert_levels</span><span class="p">,</span>
-    <span class="n">interp_horiz_cell_indices</span><span class="p">,</span>
-    <span class="n">interp_horiz_cell_weights</span><span class="p">,</span>
-    <span class="n">cell_mask_interp</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">valid_cells</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:],</span> <span class="n">valid_cells</span><span class="p">)</span>
-
-    <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertLevels'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">ocean</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ocean</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">ocean</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">ds_horiz_transect</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
+        <span class="n">nSegments</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">end</span><span class="p">),</span> <span class="n">nNodes</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">end</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="p">)</span>
-
-    <span class="n">interp_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
-        <span class="n">interp_horiz_cell_indices</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cell_mask_interp</span>
-    <span class="p">)</span>
-
-    <span class="n">interp_level_weights</span> <span class="o">=</span> <span class="n">interp_mask</span> <span class="o">*</span> <span class="n">interp_horiz_cell_weights</span>
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_level_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nHorizWeights'</span><span class="p">)</span>
-
-    <span class="n">valid_weights</span> <span class="o">=</span> <span class="n">valid_nodes</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_level_weights</span><span class="p">)</span>
-    <span class="n">interp_level_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_level_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-        <span class="n">valid_weights</span>
-    <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">interp_level_weights</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_interp_interface_weights</span><span class="p">(</span>
-    <span class="n">valid_cells</span><span class="p">,</span>
-    <span class="n">n_horiz_nodes</span><span class="p">,</span>
-    <span class="n">n_vert_levels</span><span class="p">,</span>
-    <span class="n">interp_horiz_cell_indices</span><span class="p">,</span>
-    <span class="n">interp_horiz_cell_weights</span><span class="p">,</span>
-    <span class="n">cell_interface_interp</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">valid_cells</span><span class="p">)</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">valid_cells</span><span class="p">)</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">valid_cells</span><span class="p">)</span>
-
-    <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertLevelsP1'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
-    <span class="p">)</span>
-
-    <span class="n">interp_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
-        <span class="n">interp_horiz_cell_indices</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cell_interface_interp</span>
-    <span class="p">)</span>
-
-    <span class="n">interp_interface_weights</span> <span class="o">=</span> <span class="n">interp_mask</span> <span class="o">*</span> <span class="n">interp_horiz_cell_weights</span>
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_interface_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nHorizWeights'</span><span class="p">)</span>
-
-    <span class="n">valid_weights</span> <span class="o">=</span> <span class="n">valid_nodes</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_interface_weights</span><span class="p">)</span>
-    <span class="n">interp_interface_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_interface_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-        <span class="n">valid_weights</span>
-    <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">interp_interface_weights</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_vert_coord_at_interp_cells</span><span class="p">(</span>
-    <span class="n">layer_thickness</span><span class="p">,</span> <span class="n">bottom_depth</span><span class="p">,</span> <span class="n">interp_horiz_cell_indices</span><span class="p">,</span> <span class="n">cell_mask_interp</span>
-<span class="p">):</span>
-    <span class="n">bottom_depth_interp</span> <span class="o">=</span> <span class="n">_get_horiz_at_interp</span><span class="p">(</span>
-        <span class="n">bottom_depth</span><span class="p">,</span> <span class="n">interp_horiz_cell_indices</span>
-    <span class="p">)</span>
-    <span class="n">layer_thickness_interp</span> <span class="o">=</span> <span class="n">_get_horiz_and_mask_at_interp</span><span class="p">(</span>
-        <span class="n">layer_thickness</span><span class="p">,</span> <span class="n">interp_horiz_cell_indices</span><span class="p">,</span> <span class="n">cell_mask_interp</span>
-    <span class="p">)</span>
-
-    <span class="n">ssh_interp</span> <span class="o">=</span> <span class="o">-</span><span class="n">bottom_depth_interp</span> <span class="o">+</span> <span class="n">layer_thickness_interp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span>
-    <span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">ssh_interp</span><span class="p">,</span> <span class="n">layer_thickness_interp</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_interp_horiz</span><span class="p">(</span><span class="n">field_at_interp</span><span class="p">,</span> <span class="n">interp_weights</span><span class="p">):</span>
-    <span class="n">field_transect</span> <span class="o">=</span> <span class="p">(</span><span class="n">field_at_interp</span> <span class="o">*</span> <span class="n">interp_weights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="s1">'nHorizWeights'</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">field_transect</span>
+    <span class="n">land</span> <span class="o">=</span> <span class="o">~</span><span class="n">ocean</span><span class="p">[</span><span class="n">first</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">land</span><span class="p">):</span>
+        <span class="n">ds_horiz_transect</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s1">'horizCellIndices'</span><span class="p">,</span>
+            <span class="s1">'horizTriangleIndices'</span><span class="p">,</span>
+            <span class="s1">'horizTriangleNodeIndices'</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">values</span><span class="p">[</span><span class="n">land</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">ds_horiz_transect</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ds_horiz_transect</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_vert_coord_and_interp_data</span><span class="p">(</span>
     <span class="n">ds_transect</span><span class="p">,</span> <span class="n">layer_thickness</span><span class="p">,</span> <span class="n">bottom_depth</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span>
 <span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Add the vertical coordinate of the transect and the indices and weights</span>
+<span class="sd">    for interpolating MPAS-Ocean fields to transect nodes.</span>
+
+<span class="sd">    Each MPAS cell is made up of triangular prisms, one per edge, with the</span>
+<span class="sd">    cell center and the edge's two vertices as corners.  Layer interfaces</span>
+<span class="sd">    are known at cell centers.  At a vertex, each interface lies at the</span>
+<span class="sd">    kite-area-weighted average of that interface in the adjacent cells in</span>
+<span class="sd">    which it is valid.  Along each side of a triangle, interfaces vary</span>
+<span class="sd">    linearly, so the interfaces at a transect node, where the transect</span>
+<span class="sd">    crosses a triangle side, are a linear combination of those at the two</span>
+<span class="sd">    ends of that side.  Fields are interpolated to nodes in the same way.</span>
+<span class="sd">    """</span>
     <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHorizNodes'</span><span class="p">]</span>
     <span class="n">n_segments</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nSegments'</span><span class="p">]</span>
     <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span>
@@ -652,165 +608,137 @@
     <span class="k">assert</span> <span class="n">n_horiz_nodes</span> <span class="o">==</span> <span class="n">n_segments</span> <span class="o">+</span> <span class="mi">1</span>
 
     <span class="n">interp_horiz_cell_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpHorizCellIndices</span>
-    <span class="n">interp_horiz_cell_weights</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpHorizCellWeights</span>
     <span class="n">cell_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">horizCellIndices</span>
-
-    <span class="n">cell_mask_interp</span> <span class="o">=</span> <span class="n">_get_cell_mask</span><span class="p">(</span>
-        <span class="n">interp_horiz_cell_indices</span><span class="p">,</span>
-        <span class="n">min_level_cell</span><span class="p">,</span>
-        <span class="n">max_level_cell</span><span class="p">,</span>
-        <span class="n">n_vert_levels</span><span class="p">,</span>
-    <span class="p">)</span>
 
     <span class="n">valid_cells</span> <span class="o">=</span> <span class="n">_get_cell_mask</span><span class="p">(</span>
         <span class="n">cell_indices</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span><span class="p">,</span> <span class="n">n_vert_levels</span>
     <span class="p">)</span>
-
     <span class="n">valid_cells</span> <span class="o">=</span> <span class="n">valid_cells</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">'nSegments'</span><span class="p">,</span> <span class="s1">'nVertLevels'</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
 
-    <span class="n">interp_level_weights</span> <span class="o">=</span> <span class="n">_get_interp_level_weights</span><span class="p">(</span>
-        <span class="n">valid_cells</span><span class="p">,</span>
-        <span class="n">n_horiz_nodes</span><span class="p">,</span>
-        <span class="n">n_vert_levels</span><span class="p">,</span>
-        <span class="n">interp_horiz_cell_indices</span><span class="p">,</span>
-        <span class="n">interp_horiz_cell_weights</span><span class="p">,</span>
-        <span class="n">cell_mask_interp</span><span class="p">,</span>
+    <span class="c1"># the levels and interfaces that are valid in a segment adjacent to each</span>
+    <span class="c1"># node</span>
+    <span class="n">valid_level_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">valid_level_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">valid_cells</span>
+    <span class="n">valid_level_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
+        <span class="n">valid_level_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:],</span> <span class="n">valid_cells</span>
+    <span class="p">)</span>
+    <span class="n">valid_interface_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
+    <span class="p">)</span>
+    <span class="n">valid_interface_nodes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_level_nodes</span>
+    <span class="n">valid_interface_nodes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
+        <span class="n">valid_interface_nodes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">valid_level_nodes</span>
     <span class="p">)</span>
 
-    <span class="p">(</span><span class="n">ssh_at_interp</span><span class="p">,</span> <span class="n">layer_thickness_at_interp</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">_get_vert_coord_at_interp_cells</span><span class="p">(</span>
+    <span class="n">endpoints</span> <span class="o">=</span> <span class="n">_get_endpoint_cells_and_weights</span><span class="p">(</span>
+        <span class="n">interp_horiz_cell_indices</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+        <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpHorizCellWeights</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">z_interface_cells</span><span class="p">,</span> <span class="n">valid_level_cells</span><span class="p">,</span> <span class="n">valid_interface_cells</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_get_cell_interfaces</span><span class="p">(</span>
+            <span class="n">endpoints</span><span class="p">[</span><span class="s1">'unique_cells'</span><span class="p">],</span>
             <span class="n">layer_thickness</span><span class="p">,</span>
             <span class="n">bottom_depth</span><span class="p">,</span>
-            <span class="n">interp_horiz_cell_indices</span><span class="p">,</span>
-            <span class="n">cell_mask_interp</span><span class="p">,</span>
+            <span class="n">min_level_cell</span><span class="p">,</span>
+            <span class="n">max_level_cell</span><span class="p">,</span>
         <span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="n">ssh_transect</span> <span class="o">=</span> <span class="n">_interp_horiz</span><span class="p">(</span><span class="n">ssh_at_interp</span><span class="p">,</span> <span class="n">interp_horiz_cell_weights</span><span class="p">)</span>
-    <span class="n">layer_thickness_transect</span> <span class="o">=</span> <span class="n">_interp_horiz</span><span class="p">(</span>
-        <span class="n">layer_thickness_at_interp</span><span class="p">,</span> <span class="n">interp_level_weights</span>
+    <span class="c1"># interfaces at the two ends of the triangle side each node lies on</span>
+    <span class="n">z_interface_ends</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_average_over_valid_cells</span><span class="p">(</span>
+        <span class="n">z_interface_cells</span><span class="p">,</span> <span class="n">valid_interface_cells</span><span class="p">,</span> <span class="n">endpoints</span>
+    <span class="p">)</span>
+    <span class="c1"># a vertex average over different cells for different interfaces can</span>
+    <span class="c1"># put an interface below the one beneath it</span>
+    <span class="n">z_interface_ends</span> <span class="o">=</span> <span class="n">z_interface_ends</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">z_interface_ends</span> <span class="o">=</span> <span class="n">_make_non_increasing</span><span class="p">(</span><span class="n">z_interface_ends</span><span class="p">)</span>
+    <span class="n">z_interface_ends</span> <span class="o">=</span> <span class="n">z_interface_ends</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="n">z_bot</span> <span class="o">=</span> <span class="n">ssh_transect</span> <span class="o">-</span> <span class="n">layer_thickness_transect</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span><span class="p">)</span>
-    <span class="n">z_mid</span> <span class="o">=</span> <span class="n">z_bot</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layer_thickness_transect</span>
+    <span class="n">z_interface_nodes</span> <span class="o">=</span> <span class="n">_interp_ends_to_nodes</span><span class="p">(</span>
+        <span class="n">z_interface_ends</span><span class="p">,</span> <span class="n">endpoints</span><span class="p">[</span><span class="s1">'side_weights'</span><span class="p">]</span>
+    <span class="p">)</span>
 
-    <span class="n">z_half_interfaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">ssh_transect</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">z_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">):</span>
-        <span class="n">z_half_interfaces</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">z_mid</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertLevels</span><span class="o">=</span><span class="n">z_index</span><span class="p">),</span> <span class="n">z_bot</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertLevels</span><span class="o">=</span><span class="n">z_index</span><span class="p">)]</span>
-        <span class="p">)</span>
+    <span class="n">z_interface_nodes</span><span class="p">,</span> <span class="n">ssh</span><span class="p">,</span> <span class="n">z_seafloor</span> <span class="o">=</span> <span class="n">_fill_interfaces</span><span class="p">(</span>
+        <span class="n">z_interface_nodes</span><span class="p">,</span> <span class="n">valid_interface_nodes</span>
+    <span class="p">)</span>
 
-    <span class="n">z_half_interface</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">z_half_interfaces</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">'nVertNodes'</span><span class="p">)</span>
-    <span class="n">z_half_interface</span> <span class="o">=</span> <span class="n">z_half_interface</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">)</span>
-
-    <span class="n">z_seafloor</span> <span class="o">=</span> <span class="n">ssh_transect</span> <span class="o">-</span> <span class="n">layer_thickness_transect</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span><span class="p">)</span>
+    <span class="n">z_half_interface</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">z_half_interface</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_interface_nodes</span>
+    <span class="n">z_half_interface</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span>
+        <span class="n">z_interface_nodes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">z_interface_nodes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+    <span class="p">)</span>
 
     <span class="n">valid_transect_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
     <span class="p">)</span>
     <span class="n">valid_transect_cells</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
     <span class="n">valid_transect_cells</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
-    <span class="n">valid_transect_cells</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nSegments'</span><span class="p">,</span> <span class="s1">'nHalfLevels'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_transect_cells</span>
-    <span class="p">)</span>
 
     <span class="n">level_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">level_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)</span>
     <span class="n">level_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)</span>
-    <span class="n">level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHalfLevels'</span><span class="p">,),</span> <span class="n">data</span><span class="o">=</span><span class="n">level_indices</span><span class="p">)</span>
 
     <span class="n">interface_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">interface_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)</span>
     <span class="n">interface_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">interface_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHalfLevels'</span><span class="p">,),</span> <span class="n">data</span><span class="o">=</span><span class="n">interface_indices</span>
-    <span class="p">)</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'zTransectNode'</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_half_interface</span>
-
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'ssh'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ssh_transect</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'zSeafloor'</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_seafloor</span>
-
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'cellIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'levelIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interfaceIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'validCells'</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_transect_cells</span>
-
-    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHorizNodes'</span><span class="p">]</span>
-    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span>
     <span class="n">n_vert_nodes</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">n_vert_weights</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="n">interp_level_indices</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
         <span class="p">(</span><span class="n">n_vert_nodes</span><span class="p">,</span> <span class="n">n_vert_weights</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
     <span class="p">)</span>
-    <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span><span class="o">.</span><span class="n">values</span>
-
-    <span class="n">interp_level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_level_indices</span>
-    <span class="p">)</span>
+    <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span>
+    <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span>
 
     <span class="n">interp_interface_indices</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
         <span class="p">(</span><span class="n">n_vert_nodes</span><span class="p">,</span> <span class="n">n_vert_weights</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
     <span class="p">)</span>
-    <span class="n">interp_interface_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">interp_interface_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">interp_interface_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span>
+    <span class="n">interp_interface_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span>
 
-    <span class="n">interp_interface_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_interface_indices</span>
+    <span class="c1"># horizontal weights for fields on levels and on interfaces</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">horiz_level_weights</span> <span class="o">=</span> <span class="n">_average_over_valid_cells</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">valid_level_cells</span><span class="p">,</span> <span class="n">endpoints</span>
     <span class="p">)</span>
-
-    <span class="n">half_level_thickness</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
-        <span class="n">nCells</span><span class="o">=</span><span class="n">interp_horiz_cell_indices</span><span class="p">,</span> <span class="n">nVertLevels</span><span class="o">=</span><span class="n">interp_level_indices</span>
-    <span class="p">)</span>
-    <span class="n">half_level_thickness</span> <span class="o">=</span> <span class="n">half_level_thickness</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-        <span class="n">interp_level_indices</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="mf">0.0</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">horiz_interface_weights</span> <span class="o">=</span> <span class="n">_average_over_valid_cells</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="n">valid_interface_cells</span><span class="p">,</span> <span class="n">endpoints</span>
     <span class="p">)</span>
 
-    <span class="c1"># vertical weights are proportional to the half-level thickness</span>
-    <span class="n">interp_half_level_weights</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">half_level_thickness</span>
-        <span class="o">*</span> <span class="n">interp_level_weights</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertLevels</span><span class="o">=</span><span class="n">interp_level_indices</span><span class="p">)</span>
+    <span class="c1"># vertical weights for fields on levels: linear in z between the middles</span>
+    <span class="c1"># of layers</span>
+    <span class="n">vert_level_weights</span> <span class="o">=</span> <span class="n">_get_vert_level_weights</span><span class="p">(</span>
+        <span class="n">z_interface_nodes</span><span class="p">,</span> <span class="n">valid_level_nodes</span>
+    <span class="p">)</span>
+    <span class="n">interp_half_level_weights</span> <span class="o">=</span> <span class="n">_combine_horiz_and_vert_weights</span><span class="p">(</span>
+        <span class="n">horiz_level_weights</span><span class="p">,</span> <span class="n">vert_level_weights</span><span class="p">,</span> <span class="n">interp_level_indices</span>
     <span class="p">)</span>
 
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_half_level_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">)</span>
+    <span class="c1"># vertical weights for fields on interfaces: the values at interfaces</span>
+    <span class="c1"># and their mean at the middles of layers</span>
+    <span class="n">vert_interface_weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">n_vert_nodes</span><span class="p">,</span> <span class="n">n_vert_weights</span><span class="p">)</span>
     <span class="p">)</span>
-    <span class="n">out_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">weight_sum</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_half_level_weights</span><span class="p">)</span>
-    <span class="n">interp_half_level_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_half_level_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-        <span class="n">out_mask</span>
+    <span class="n">vert_interface_weights</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mf">0.5</span> <span class="o">*</span> <span class="n">valid_interface_nodes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
     <span class="p">)</span>
-
-    <span class="n">interface_mask_interp</span> <span class="o">=</span> <span class="n">_get_interface_mask</span><span class="p">(</span>
-        <span class="n">interp_horiz_cell_indices</span><span class="p">,</span>
-        <span class="n">min_level_cell</span><span class="p">,</span>
-        <span class="n">max_level_cell</span><span class="p">,</span>
-        <span class="n">n_vert_levels</span><span class="p">,</span>
+    <span class="n">vert_interface_weights</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">valid_interface_nodes</span><span class="p">[</span>
+        <span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span>
+    <span class="p">]</span>
+    <span class="n">vert_interface_weights</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">valid_interface_nodes</span><span class="p">[</span>
+        <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+    <span class="p">]</span>
+    <span class="n">vert_interface_weights</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mf">0.5</span> <span class="o">*</span> <span class="n">valid_level_nodes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
     <span class="p">)</span>
-
-    <span class="n">interp_interface_weights</span> <span class="o">=</span> <span class="n">_get_interp_interface_weights</span><span class="p">(</span>
-        <span class="n">valid_cells</span><span class="p">,</span>
-        <span class="n">n_horiz_nodes</span><span class="p">,</span>
-        <span class="n">n_vert_levels</span><span class="p">,</span>
-        <span class="n">interp_horiz_cell_indices</span><span class="p">,</span>
-        <span class="n">interp_horiz_cell_weights</span><span class="p">,</span>
-        <span class="n">interface_mask_interp</span><span class="p">,</span>
+    <span class="n">interp_half_interface_weights</span> <span class="o">=</span> <span class="n">_combine_horiz_and_vert_weights</span><span class="p">(</span>
+        <span class="n">horiz_interface_weights</span><span class="p">,</span>
+        <span class="n">vert_interface_weights</span><span class="p">,</span>
+        <span class="n">interp_interface_indices</span><span class="p">,</span>
     <span class="p">)</span>
-
-    <span class="c1"># vertical weights are proportional to the half-level thickness</span>
-    <span class="n">interp_half_interface_weights</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">half_level_thickness</span>
-        <span class="o">*</span> <span class="n">interp_interface_weights</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertLevelsP1</span><span class="o">=</span><span class="n">interp_interface_indices</span><span class="p">)</span>
-    <span class="p">)</span>
-
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_half_interface_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">)</span>
-    <span class="p">)</span>
-    <span class="n">out_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">weight_sum</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_half_interface_weights</span><span class="p">)</span>
-    <span class="n">interp_half_interface_weights</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">interp_half_interface_weights</span> <span class="o">/</span> <span class="n">weight_sum</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">out_mask</span><span class="p">)</span>
 
     <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">n_vert_nodes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_transect_cells</span>
@@ -824,16 +752,290 @@
         <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">valid_transect_cells</span>
     <span class="p">)</span>
 
-    <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'zTransectNode'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">),</span>
+        <span class="n">z_half_interface</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'ssh'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nHorizNodes'</span><span class="p">,),</span> <span class="n">ssh</span><span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'zSeafloor'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nHorizNodes'</span><span class="p">,),</span> <span class="n">z_seafloor</span><span class="p">)</span>
+
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'cellIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_indices</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'levelIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nHalfLevels'</span><span class="p">,),</span> <span class="n">level_indices</span><span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interfaceIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nHalfLevels'</span><span class="p">,),</span> <span class="n">interface_indices</span><span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'validCells'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nSegments'</span><span class="p">,</span> <span class="s1">'nHalfLevels'</span><span class="p">),</span>
+        <span class="n">valid_transect_cells</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpCellIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpLevelIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_level_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpLevelWeights'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_half_level_weights</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpInterfaceIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_interface_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpInterfaceWeights'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_half_interface_weights</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'validNodes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_nodes</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpLevelIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span>
+        <span class="n">interp_level_indices</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpLevelWeights'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span>
+        <span class="n">interp_half_level_weights</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpInterfaceIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span>
+        <span class="n">interp_interface_indices</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpInterfaceWeights'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span>
+        <span class="n">interp_half_interface_weights</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'validNodes'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">),</span> <span class="n">valid_nodes</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_endpoint_cells_and_weights</span><span class="p">(</span>
+    <span class="n">interp_horiz_cell_indices</span><span class="p">,</span> <span class="n">interp_horiz_cell_weights</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Split the horizontal interpolation cells and weights of each node into</span>
+<span class="sd">    the two ends of the triangle side the node lies on.  Each end is either</span>
+<span class="sd">    a cell center (one cell) or a vertex (the cells sharing that vertex).</span>
+<span class="sd">    """</span>
+    <span class="n">n_nodes</span><span class="p">,</span> <span class="n">n_horiz_weights</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">if</span> <span class="n">n_horiz_weights</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">'Expected an even number of horizontal weights, one set for '</span>
+            <span class="sa">f</span><span class="s1">'each end of a triangle side, but found </span><span class="si">{</span><span class="n">n_horiz_weights</span><span class="si">}</span><span class="s1">.'</span>
+        <span class="p">)</span>
+    <span class="n">n_cells_per_end</span> <span class="o">=</span> <span class="n">n_horiz_weights</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">n_nodes</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">n_cells_per_end</span><span class="p">)</span>
+    <span class="n">cells</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">interp_horiz_cell_weights</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1"># the weight of each end along the side of the triangle.  It includes</span>
+    <span class="c1"># the weights of any missing cells (index -1) so that the ends' averages</span>
+    <span class="c1"># can be taken over existing cells only</span>
+    <span class="n">side_weights</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">cell_exists</span> <span class="o">=</span> <span class="n">cells</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+    <span class="n">unique_cells</span><span class="p">,</span> <span class="n">unique_inverse</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cell_exists</span><span class="p">,</span> <span class="n">cells</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">return_inverse</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">unique_inverse</span> <span class="o">=</span> <span class="n">unique_inverse</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">,</span>
+        <span class="n">weights</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cell_exists</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">),</span>
+        <span class="n">side_weights</span><span class="o">=</span><span class="n">side_weights</span><span class="p">,</span>
+        <span class="n">cell_exists</span><span class="o">=</span><span class="n">cell_exists</span><span class="p">,</span>
+        <span class="n">unique_cells</span><span class="o">=</span><span class="n">unique_cells</span><span class="p">,</span>
+        <span class="n">unique_inverse</span><span class="o">=</span><span class="n">unique_inverse</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_interfaces</span><span class="p">(</span>
+    <span class="n">cells</span><span class="p">,</span> <span class="n">layer_thickness</span><span class="p">,</span> <span class="n">bottom_depth</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Get the elevations of layer interfaces at the centers of the given</span>
+<span class="sd">    cells, building up from the seafloor as MPAS-Ocean does, along with</span>
+<span class="sd">    which levels and interfaces are valid</span>
+<span class="sd">    """</span>
+    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span>
+    <span class="n">cells</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">cells</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nCells'</span><span class="p">,))</span>
+    <span class="n">thickness</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">layer_thickness</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="s1">'nVertLevels'</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">values</span>
+    <span class="p">)</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="n">bottom_depth</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">min_level</span> <span class="o">=</span> <span class="n">min_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">max_level</span> <span class="o">=</span> <span class="n">max_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">level_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)</span>
+    <span class="n">valid_levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">level_indices</span> <span class="o">&gt;=</span> <span class="n">min_level</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+        <span class="n">level_indices</span> <span class="o">&lt;=</span> <span class="n">max_level</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">interface_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">valid_interfaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">interface_indices</span> <span class="o">&gt;=</span> <span class="n">min_level</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+        <span class="n">interface_indices</span> <span class="o">&lt;=</span> <span class="n">max_level</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">valid_interfaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">valid_interfaces</span><span class="p">,</span> <span class="p">(</span><span class="n">max_level</span> <span class="o">&gt;=</span> <span class="n">min_level</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">thickness</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid_levels</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">thickness_below</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">thickness</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">z_interface</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">),</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">z_interface</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">thickness_below</span>
+    <span class="n">z_interface</span> <span class="o">=</span> <span class="n">z_interface</span> <span class="o">-</span> <span class="n">bottom</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+    <span class="n">z_interface</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid_interfaces</span><span class="p">,</span> <span class="n">z_interface</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">z_interface</span><span class="p">,</span> <span class="n">valid_levels</span><span class="p">,</span> <span class="n">valid_interfaces</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_average_over_valid_cells</span><span class="p">(</span><span class="n">field_cells</span><span class="p">,</span> <span class="n">valid_cells</span><span class="p">,</span> <span class="n">endpoints</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Average a field at each end of the triangle sides that nodes lie on,</span>
+<span class="sd">    using only the cells in which the field is valid.  Returns the averages</span>
+<span class="sd">    (if ``field_cells`` is not ``None``) and the weight of each cell in the</span>
+<span class="sd">    linear interpolation to the node.</span>
+<span class="sd">    """</span>
+    <span class="n">inverse</span> <span class="o">=</span> <span class="n">endpoints</span><span class="p">[</span><span class="s1">'unique_inverse'</span><span class="p">]</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">endpoints</span><span class="p">[</span><span class="s1">'cell_exists'</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">valid_cells</span><span class="p">[</span><span class="n">inverse</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">endpoints</span><span class="p">[</span><span class="s1">'weights'</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">valid</span>
+    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">has_valid</span> <span class="o">=</span> <span class="n">weight_sum</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">weights</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">has_valid</span><span class="p">,</span> <span class="n">weight_sum</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+
+    <span class="n">field_ends</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">field_cells</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">field_cells</span><span class="p">[</span><span class="n">inverse</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">field_ends</span> <span class="o">=</span> <span class="p">(</span><span class="n">weights</span> <span class="o">*</span> <span class="n">field</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">field_ends</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">has_valid</span><span class="p">,</span> <span class="n">field_ends</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="c1"># weights for interpolation to the node, flattened back to</span>
+    <span class="c1"># nHorizWeights</span>
+    <span class="n">node_weights</span> <span class="o">=</span> <span class="n">endpoints</span><span class="p">[</span><span class="s1">'side_weights'</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span>
+        <span class="n">weights</span>
+    <span class="p">)</span>
+    <span class="n">n_nodes</span> <span class="o">=</span> <span class="n">node_weights</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">node_weights</span> <span class="o">=</span> <span class="n">node_weights</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n_nodes</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">valid_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">field_ends</span><span class="p">,</span> <span class="n">node_weights</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_interp_ends_to_nodes</span><span class="p">(</span><span class="n">field_ends</span><span class="p">,</span> <span class="n">side_weights</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Interpolate linearly from the two ends of a triangle side to the node</span>
+<span class="sd">    that lies on it.  The result is NaN where the field is not valid at an</span>
+<span class="sd">    end with a nonzero weight.</span>
+<span class="sd">    """</span>
+    <span class="n">use</span> <span class="o">=</span> <span class="n">side_weights</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+    <span class="n">contrib</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">use</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span>
+        <span class="n">side_weights</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">field_ends</span><span class="p">,</span>
+        <span class="mf">0.0</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">contrib</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_non_increasing</span><span class="p">(</span><span class="n">z</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Make each row of ``z`` non-increasing (skipping NaNs) with the closest</span>
+<span class="sd">    such row in the least-squares sense</span>
+<span class="sd">    """</span>
+    <span class="n">z_filled</span> <span class="o">=</span> <span class="n">_forward_fill</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">rising</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">z_filled</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">&gt;</span> <span class="n">z_filled</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">rising</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">finite</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">z</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">finite</span><span class="p">]</span> <span class="o">=</span> <span class="n">_pool_adjacent_violators</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">finite</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">z</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_pool_adjacent_violators</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    The non-increasing sequence closest to ``values`` in the least-squares</span>
+<span class="sd">    sense, found by pooling adjacent values that increase into their mean</span>
+<span class="sd">    """</span>
+    <span class="n">means</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+        <span class="n">means</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">counts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">means</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">means</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">means</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">mean</span> <span class="o">=</span> <span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">means</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">count</span>
+            <span class="n">means</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">counts</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">means</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean</span>
+            <span class="n">counts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">count</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">means</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_forward_fill</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Fill NaNs in each row with the closest preceding finite value</span>
+<span class="sd">    """</span>
+    <span class="n">n_rows</span><span class="p">,</span> <span class="n">n_cols</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_cols</span><span class="p">)[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="o">.</span><span class="n">accumulate</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">indices</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">a</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_rows</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">indices</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fill_interfaces</span><span class="p">(</span><span class="n">z_interface</span><span class="p">,</span> <span class="n">valid_interfaces</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Give interfaces that are not valid at a node the elevation of the</span>
+<span class="sd">    closest valid interface, so that invalid layers have zero thickness, and</span>
+<span class="sd">    find the sea-surface height and seafloor elevation at each node: the top</span>
+<span class="sd">    and bottom of the valid layers in the adjacent segments</span>
+<span class="sd">    """</span>
+    <span class="n">n_nodes</span> <span class="o">=</span> <span class="n">z_interface</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">any_valid</span> <span class="o">=</span> <span class="n">valid_interfaces</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># nodes between invalid segments keep whatever interfaces are defined</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">valid_interfaces</span><span class="p">,</span> <span class="o">~</span><span class="n">any_valid</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">z_interface</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">_forward_fill</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">_forward_fill</span><span class="p">(</span><span class="n">z</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">])[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">z</span><span class="p">),</span> <span class="n">z</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="n">top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">valid_interfaces</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">valid_interfaces</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="o">-</span> <span class="mi">1</span>
+        <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">valid_interfaces</span><span class="p">[:,</span> <span class="p">::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_nodes</span><span class="p">)</span>
+    <span class="n">ssh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">any_valid</span><span class="p">,</span> <span class="n">z</span><span class="p">[</span><span class="n">nodes</span><span class="p">,</span> <span class="n">top</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">z_seafloor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">any_valid</span><span class="p">,</span> <span class="n">z</span><span class="p">[</span><span class="n">nodes</span><span class="p">,</span> <span class="n">bottom</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">z</span><span class="p">,</span> <span class="n">ssh</span><span class="p">,</span> <span class="n">z_seafloor</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_vert_level_weights</span><span class="p">(</span><span class="n">z_interface</span><span class="p">,</span> <span class="n">valid_levels</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Vertical weights for interpolating fields on levels to transect nodes:</span>
+<span class="sd">    the level's value at the middle of a layer and linear interpolation</span>
+<span class="sd">    between the middles of adjacent valid layers at an interface</span>
+<span class="sd">    """</span>
+    <span class="n">n_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">valid_levels</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">n_vert_nodes</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">thickness</span> <span class="o">=</span> <span class="n">z_interface</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">z_interface</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_nodes</span><span class="p">,</span> <span class="n">n_vert_nodes</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">weights</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">valid_levels</span>
+    <span class="n">weights</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">valid_levels</span>
+
+    <span class="c1"># the level above and below each interface</span>
+    <span class="n">above</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">above</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">valid_levels</span>
+    <span class="n">below</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">below</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_levels</span>
+    <span class="n">thickness_above</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">thickness_above</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">thickness</span>
+    <span class="n">thickness_below</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_nodes</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">thickness_below</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">thickness</span>
+
+    <span class="n">both</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">above</span><span class="p">,</span> <span class="n">below</span><span class="p">)</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="n">thickness_above</span> <span class="o">+</span> <span class="n">thickness_below</span>
+    <span class="c1"># each middle is half a layer from the interface, so the weight of</span>
+    <span class="c1"># each layer is proportional to the thickness of the other</span>
+    <span class="n">weight_above</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">total</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">thickness_below</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">total</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="mf">0.5</span>
+    <span class="p">)</span>
+    <span class="n">weights</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">both</span><span class="p">,</span> <span class="n">weight_above</span><span class="p">,</span> <span class="n">above</span><span class="p">)</span>
+    <span class="n">weights</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">both</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">weight_above</span><span class="p">,</span> <span class="n">below</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">weights</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_combine_horiz_and_vert_weights</span><span class="p">(</span><span class="n">horiz_weights</span><span class="p">,</span> <span class="n">vert_weights</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Combine horizontal weights on each level or interface with vertical</span>
+<span class="sd">    weights into weights with dimensions nHorizNodes, nVertNodes,</span>
+<span class="sd">    nHorizWeights and nVertWeights</span>
+<span class="sd">    """</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">indices</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+    <span class="n">horiz</span> <span class="o">=</span> <span class="n">horiz_weights</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span>
+    <span class="n">horiz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">horiz</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="c1"># nHorizNodes, nHorizWeights, nVertNodes, nVertWeights</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">horiz</span> <span class="o">*</span> <span class="n">vert_weights</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+    <span class="k">return</span> <span class="n">weights</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_mask</span><span class="p">(</span>
@@ -852,25 +1054,6 @@
     <span class="n">cell_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">cell_mask</span><span class="p">,</span> <span class="n">cell_indices</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">cell_mask</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_interface_mask</span><span class="p">(</span>
-    <span class="n">cell_indices</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span><span class="p">,</span> <span class="n">n_vert_levels</span>
-<span class="p">):</span>
-    <span class="n">interface_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">'nVertLevelsP1'</span>
-    <span class="p">)</span>
-    <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">min_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span>
-    <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">max_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span>
-
-    <span class="n">interface_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
-        <span class="n">interface_indices</span> <span class="o">&gt;=</span> <span class="n">min_level_cell</span><span class="p">,</span>
-        <span class="n">interface_indices</span> <span class="o">&lt;=</span> <span class="n">max_level_cell</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="p">)</span>
-
-    <span class="n">interface_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">interface_mask</span><span class="p">,</span> <span class="n">cell_indices</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">interface_mask</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_interface_segments</span><span class="p">(</span><span class="n">z_half_interface</span><span class="p">,</span> <span class="n">d_node</span><span class="p">,</span> <span class="n">valid_transect_cells</span><span class="p">):</span>
@@ -928,63 +1111,6 @@
     <span class="n">z_seg</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nCellBoundaries'</span><span class="p">,</span> <span class="s1">'nVertBounds'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">z_seg</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">d_seg</span><span class="p">,</span> <span class="n">z_seg</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_get_interp_indices_and_weights</span><span class="p">(</span>
-    <span class="n">layer_thickness</span><span class="p">,</span>
-    <span class="n">interp_cell_indices</span><span class="p">,</span>
-    <span class="n">interp_cell_weights</span><span class="p">,</span>
-    <span class="n">level_indices</span><span class="p">,</span>
-    <span class="n">valid_transect_cells</span><span class="p">,</span>
-<span class="p">):</span>
-    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">interp_cell_indices</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHorizNodes'</span><span class="p">]</span>
-    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span>
-    <span class="n">n_vert_nodes</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span>
-    <span class="n">n_vert_weights</span> <span class="o">=</span> <span class="mi">2</span>
-
-    <span class="n">interp_level_indices</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">n_vert_nodes</span><span class="p">,</span> <span class="n">n_vert_weights</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
-    <span class="p">)</span>
-    <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span><span class="o">.</span><span class="n">values</span>
-    <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span><span class="o">.</span><span class="n">values</span>
-
-    <span class="n">interp_level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_level_indices</span>
-    <span class="p">)</span>
-
-    <span class="n">half_level_thickness</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
-        <span class="n">nCells</span><span class="o">=</span><span class="n">interp_cell_indices</span><span class="p">,</span> <span class="n">nVertLevels</span><span class="o">=</span><span class="n">interp_level_indices</span>
-    <span class="p">)</span>
-    <span class="n">half_level_thickness</span> <span class="o">=</span> <span class="n">half_level_thickness</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-        <span class="n">interp_level_indices</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="mf">0.0</span>
-    <span class="p">)</span>
-
-    <span class="c1"># vertical weights are proportional to the half-level thickness</span>
-    <span class="n">interp_cell_weights</span> <span class="o">=</span> <span class="n">half_level_thickness</span> <span class="o">*</span> <span class="n">interp_cell_weights</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
-        <span class="n">nVertLevels</span><span class="o">=</span><span class="n">interp_level_indices</span>
-    <span class="p">)</span>
-
-    <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">n_vert_nodes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_transect_cells</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
-        <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">valid_transect_cells</span>
-    <span class="p">)</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
-        <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">valid_transect_cells</span>
-    <span class="p">)</span>
-    <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
-        <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">valid_transect_cells</span>
-    <span class="p">)</span>
-
-    <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
-    <span class="p">)</span>
-
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_cell_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">))</span>
-    <span class="n">out_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">weight_sum</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_cell_weights</span><span class="p">)</span>
-    <span class="n">interp_cell_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_cell_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">out_mask</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">interp_level_indices</span><span class="p">,</span> <span class="n">interp_cell_weights</span><span class="p">,</span> <span class="n">valid_nodes</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_vertical_interpolation_of_transect_points</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">,</span> <span class="n">z_transect</span><span class="p">):</span>

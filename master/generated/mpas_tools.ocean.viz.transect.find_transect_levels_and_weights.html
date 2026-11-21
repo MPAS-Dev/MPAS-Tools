@@ -195,6 +195,20 @@ or <code class="xref py py-func docutils literal notranslate"><span class="pre">
 Also, compute interpolation weights such that observations at points on the
 original transect and with vertical coordinate <code class="docutils literal notranslate"><span class="pre">transectZ</span></code> can be
 bilinearly interpolated to the nodes of the transect.</p>
+<p>The transect is a slice through triangular prisms, one for each edge of
+each MPAS cell, with the cell center and the edge’s two vertices as
+corners.  Layer interfaces are computed at cell centers from
+<code class="docutils literal notranslate"><span class="pre">bottom_depth</span></code> and <code class="docutils literal notranslate"><span class="pre">layer_thickness</span></code>.  At a vertex, each interface
+lies at the kite-area-weighted average of that interface over the
+adjacent cells in which it is valid.  If this would put an interface
+below the one beneath it (as can happen where the same interface lies
+at very different depths in neighboring cells), the interfaces at that
+vertex are replaced by the closest non-increasing ones in the
+least-squares sense.  Interfaces vary linearly along each side of a
+triangle, so a transect node, where the transect crosses a side,
+takes a linear combination of the interfaces at the two ends of that
+side.  Levels that are valid in only one of the two segments adjacent
+to a node end in a vertical wall at that node.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -218,9 +232,16 @@ and <code class="docutils literal notranslate"><span class="pre">nVertNodes</spa
 <div><ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">validCells</span></code>, <code class="docutils literal notranslate"><span class="pre">validNodes</span></code>: which transect cells and nodes
 are valid (above the bathymetry and below the sea surface)</p></li>
-<li><p>zTransectNode: the vertical height of each triangle node</p></li>
-<li><p>ssh, zSeaFloor: the sea-surface height and sea-floor height at
-each node of each transect segment</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">zTransectNode</span></code>: the elevation of each transect node, at
+layer interfaces (even <code class="docutils literal notranslate"><span class="pre">nVertNodes</span></code> indices) and the
+middles of layers (odd indices).  Where a level is not valid
+in either segment adjacent to a node, it has zero thickness
+at that node.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ssh</span></code>, <code class="docutils literal notranslate"><span class="pre">zSeafloor</span></code>: the elevation of the top (sea surface
+or ice draft) and bottom (seafloor) of the valid layers in the
+segments adjacent to each node, the higher top and lower
+bottom where the two segments differ.  These are NaN at nodes
+between invalid segments.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">cellIndices</span></code>: the MPAS-Ocean cell of a given transect segment</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">levelIndices</span></code>: the MPAS-Ocean vertical level of a given
 transect level</p></li>
