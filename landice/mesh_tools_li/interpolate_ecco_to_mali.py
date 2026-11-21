@@ -9,11 +9,9 @@ generate MALI input field icebergFjordMask from sea ice area if using this
 option.
 
 ECCO grid files are unconventional for MITgcm simulations and do not contain
-adequate grid cell corner information for tile edge cells (necessary for
-creating scrip file and remapping). Therefore, this information needed to be
-hardcoded into interpolate_ecco_to_mali.py, using grid corner information from
-adjacent MITgcm tiles. Currently supported tiles are 14 and 27, which cover the
-western and northern coasts of Greenland.
+adequate grid cell corner information for all tile edge cells (necessary for
+creating scrip file and remapping). This script includes seam-aware stitching
+for the Greenland ASTE subset (tiles 5, 11, 12, 14, 15, 27).
 '''
 
 import os
@@ -24,15 +22,18 @@ import numpy as np
 import pandas as pd
 from mpas_tools.logging import check_call
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
-from mpas_tools.ocean.depth import compute_zmid
 from argparse import ArgumentParser
 import time
 import cftime
-import glob
 import json
-from shapely.geometry import shape
-from shapely.prepared import prep
-from shapely.geometry import Point
+try:
+    from shapely.geometry import shape
+    from shapely.prepared import prep
+    from shapely.geometry import Point
+except ImportError:
+    shape = None
+    prep = None
+    Point = None
 
 class eccoToMaliInterp:
     
@@ -57,149 +58,216 @@ class eccoToMaliInterp:
         self.options = args
 
         self.mapping_file_name = f'ecco_to_mali_mapping_{self.options.method}.nc'
-        self.tileNums = [14, 27] # Hardcoding ECCO tiles for now. Indexing is dependent on tile order, do not change
+        self.supportedTiles = {5, 11, 12, 14, 15, 27}
+        self.tileNums = sorted(self.supportedTiles)
+        # Hardcoded seams for Greenland ASTE subset: tile_edge -> neighbor_edge.
+        self.greenlandSeams = {
+            5: {'right': (14, 'bottom', True)},
+            11: {'right': (14, 'left', False), 'top': (12, 'bottom', False)},
+            12: {'right': (15, 'left', False)},
+            14: {'right': (27, 'bottom', True), 'top': (15, 'bottom', False)},
+            27: {'right': (5, 'bottom', True)}
+        }
+        self._tileGeom = None
+
+    @staticmethod
+    def _edge_vector(xg, yg, edge_name):
+        if edge_name == 'left':
+            return xg[0, :].copy(), yg[0, :].copy()
+        if edge_name == 'right':
+            return xg[-1, :].copy(), yg[-1, :].copy()
+        if edge_name == 'bottom':
+            return xg[:, 0].copy(), yg[:, 0].copy()
+        if edge_name == 'top':
+            return xg[:, -1].copy(), yg[:, -1].copy()
+        raise ValueError(f"Unknown edge name: {edge_name}")
+
+    def _build_greenland_tile_geometry(self):
+        if self._tileGeom is not None:
+            return self._tileGeom
+
+        grids = {}
+        for tile in self.tileNums:
+            padded_tile = str(tile).zfill(4)
+            grid_file = os.path.join(self.options.eccoDir, f'GRID.{padded_tile}.nc')
+            if not os.path.exists(grid_file):
+                raise ValueError(f"GRID netcdf file for tile {tile} not found in {self.options.eccoDir}")
+            with xr.open_dataset(grid_file) as grd:
+                grids[tile] = {
+                    'XC': grd['XC'][:].values,
+                    'YC': grd['YC'][:].values,
+                    'XG': grd['XG'][:].values,
+                    'YG': grd['YG'][:].values
+                }
+
+        tile_geom = {}
+        for tile in self.tileNums:
+            xc = grids[tile]['XC']
+            yc = grids[tile]['YC']
+            xg = grids[tile]['XG']
+            yg = grids[tile]['YG']
+            nx, ny = xc.shape
+
+            right_vec_lon = None
+            right_vec_lat = None
+            top_vec_lon = None
+            top_vec_lat = None
+
+            tile_seams = self.greenlandSeams.get(tile, {})
+
+            if 'right' in tile_seams:
+                neighbor_tile, neighbor_edge, reverse_order = tile_seams['right']
+                if neighbor_tile in grids:
+                    rv_lon, rv_lat = self._edge_vector(grids[neighbor_tile]['XG'], grids[neighbor_tile]['YG'], neighbor_edge)
+                    if reverse_order:
+                        rv_lon = rv_lon[::-1]
+                        rv_lat = rv_lat[::-1]
+                    right_vec_lon, right_vec_lat = rv_lon, rv_lat
+
+            if 'top' in tile_seams:
+                neighbor_tile, neighbor_edge, reverse_order = tile_seams['top']
+                if neighbor_tile in grids:
+                    tv_lon, tv_lat = self._edge_vector(grids[neighbor_tile]['XG'], grids[neighbor_tile]['YG'], neighbor_edge)
+                    if reverse_order:
+                        tv_lon = tv_lon[::-1]
+                        tv_lat = tv_lat[::-1]
+                    top_vec_lon, top_vec_lat = tv_lon, tv_lat
+
+            i_cells = []
+            j_cells = []
+            lon_cells = []
+            lat_cells = []
+            c1_lon = []
+            c2_lon = []
+            c3_lon = []
+            c4_lon = []
+            c1_lat = []
+            c2_lat = []
+            c3_lat = []
+            c4_lat = []
+
+            for i in range(nx):
+                for j in range(ny):
+                    se_lon = xg[i, j]
+                    se_lat = yg[i, j]
+
+                    if i + 1 < nx:
+                        sw_lon = xg[i + 1, j]
+                        sw_lat = yg[i + 1, j]
+                    elif right_vec_lon is not None:
+                        sw_lon = right_vec_lon[j]
+                        sw_lat = right_vec_lat[j]
+                    else:
+                        continue
+
+                    if j + 1 < ny:
+                        ne_lon = xg[i, j + 1]
+                        ne_lat = yg[i, j + 1]
+                    elif top_vec_lon is not None:
+                        ne_lon = top_vec_lon[i]
+                        ne_lat = top_vec_lat[i]
+                    else:
+                        continue
+
+                    if i + 1 < nx and j + 1 < ny:
+                        nw_lon = xg[i + 1, j + 1]
+                        nw_lat = yg[i + 1, j + 1]
+                    elif i + 1 == nx and j + 1 < ny and right_vec_lon is not None:
+                        nw_lon = right_vec_lon[j + 1]
+                        nw_lat = right_vec_lat[j + 1]
+                    elif i + 1 < nx and j + 1 == ny and top_vec_lon is not None:
+                        nw_lon = top_vec_lon[i + 1]
+                        nw_lat = top_vec_lat[i + 1]
+                    else:
+                        # Corner cell where both +i and +j need cross-face corner.
+                        continue
+
+                    i_cells.append(i)
+                    j_cells.append(j)
+                    lon_cells.append(xc[i, j])
+                    lat_cells.append(yc[i, j])
+                    c1_lon.append(se_lon)
+                    c2_lon.append(sw_lon)
+                    c3_lon.append(nw_lon)
+                    c4_lon.append(ne_lon)
+                    c1_lat.append(se_lat)
+                    c2_lat.append(sw_lat)
+                    c3_lat.append(nw_lat)
+                    c4_lat.append(ne_lat)
+
+            tile_geom[tile] = {
+                'i': np.array(i_cells, dtype=np.int32),
+                'j': np.array(j_cells, dtype=np.int32),
+                'center_lon': np.array(lon_cells, dtype=np.float64),
+                'center_lat': np.array(lat_cells, dtype=np.float64),
+                'corner_lon': np.stack((c1_lon, c2_lon, c3_lon, c4_lon), axis=1).astype(np.float64),
+                'corner_lat': np.stack((c1_lat, c2_lat, c3_lat, c4_lat), axis=1).astype(np.float64)
+            }
+
+        self._tileGeom = tile_geom
+        return tile_geom
 
     def merge_MITgcm_files_to_unstruct_grid(self):
-        ncfiles = glob.glob(os.path.join(self.options.eccoDir, "*.nc"))
-        saltBool = 0
-        thetaBool = 0
-        siaBool = 0
-    
-        #loop through MITgcm tile files and create unstructured arrays for each remapped variable
+        tile_geom = self._build_greenland_tile_geometry()
+
+        sal_tiles = []
+        theta_tiles = []
+        sia_tiles = []
+        mask_tiles = []
+        z = None
+        time_vals = None
+
+        # Loop through selected MITgcm tile files and create unstructured arrays.
         for tile in self.tileNums:
-            print(f"Processing Tile {tile}")
-            o3dmBool = 0
-            gridBool = 0
-            for file in ncfiles:
-                print(f"Processing File {file}")
-                paddedTile = str(tile).zfill(4)
-                print(f"Padded Tile: {paddedTile}")
-                if paddedTile in file:
-                    print("Padded tile is in file")
-                    
-                    if 'SALT' in file:
-                        validFile = self.options.eccoDir + '/SALT.' + paddedTile + '.nc'
-                        ds_ecco = xr.open_dataset(validFile)
-                        
-                        # only open depth variable once, regardless of which variables we are interested in 
-                        if saltBool == 0 and thetaBool == 0:
-                            z = ds_ecco['dep'].values
-                            
-                        if tile == 14:
-                            sal = ds_ecco['SALT'][:].values
-                            # omit rows/columns where no corner information in scrip file
-                            sal = sal[:,:,:,1:-1]
-                            nt,nz,nx,ny = np.shape(sal)
-                            sal = sal.reshape(nt, nz, nx * ny)
-                        elif tile == 27:
-                            sl = ds_ecco['SALT'][:].values
-                            # omit rows/columns where no corner information in scrip file
-                            sl = sl[:,:,0:-1,0:-1]
-                            nt,nz,nx,ny = np.shape(sl)
-                            sl = sl.reshape(nt, nz, nx * ny)
-                            sal = np.concatenate((sal,sl), axis=2)
-                        
-                        # ECCO 'land' variable is equivalent to MALI's orig3dOceanMask, despite the counterintuitive name.
-                        # Only need to call this once per tile, but needs to be using a theta/salinity file because it includes depth 
-                        # No need to call this if only interpolating SIarea
-                        if tile == 14 and o3dmBool == 0:
-                            orig3dOceanMask = ds_ecco['land'].values
-                            # omit rows/columns where no corner information in scrip file
-                            orig3dOceanMask = orig3dOceanMask[:,:,1:-1]
-                            nz,nx,ny = np.shape(orig3dOceanMask)
-                            orig3dOceanMask = orig3dOceanMask.reshape(nz, nx * ny)
-                            od3mBool = 1
-                        elif tile == 27 and o3dmBool == 0:
-                            o3dm = ds_ecco['land'].values
-                            # omit rows/columns where no corner information in scrip file
-                            o3dm = o3dm[:,0:-1,0:-1]
-                            nz,nx,ny = np.shape(o3dm)
-                            o3dm = o3dm.reshape(nz, nx * ny)
-                            orig3dOceanMask = np.concatenate((orig3dOceanMask, o3dm), axis=1)
-                            o3dmBool = 1
-                        
-                        # set MALI invalid value
-                        boolZ,boolXY = np.where(orig3dOceanMask == 0)
-                        for iZ,iXY in zip(boolZ,boolXY):
-                            sal[:,iZ,iXY] = 1e36
-                        
-                        saltBool = 1       
-                    
-                    # Repeat for potential temperature if needed
-                    elif 'THETA' in file:       
-                        validFile = self.options.eccoDir + '/THETA.' + paddedTile + '.nc'
-                        ds_ecco = xr.open_dataset(validFile)
-                        
-                        if saltBool == 0 and thetaBool == 0:
-                            z = ds_ecco['dep'].values
-                            
-                        if tile == 14:
-                            theta = ds_ecco['THETA'][:].values
-                            # omit rows/columns where no corner information in scrip file
-                            theta = theta[:,:,:,1:-1]
-                            nt,nz,nx,ny = np.shape(theta)
-                            theta = theta.reshape(nt, nz, nx * ny)
-                        elif tile == 27:
-                            th = ds_ecco['THETA'][:].values
-                            # omit rows/columns where no corner information in scrip file
-                            th = th[:,:,0:-1,0:-1]
-                            nt,nz,nx,ny = np.shape(th)
-                            th = th.reshape(nt, nz, nx * ny)
-                            theta = np.concatenate((theta,th), axis=2)
+            paddedTile = str(tile).zfill(4)
+            print(f"Processing tile {paddedTile}")
 
-                        # ECCO 'land' variable is equivalent to MALI's orig3dOceanMask, despite the counterintuitive name.
-                        # Only need to call this once per tile, but needs to be using a theta/salinity file because it includes depth 
-                        # No need to call this if only interpolating SIarea
-                        if tile == 14 and o3dmBool == 0:
-                            orig3dOceanMask = ds_ecco['land'].values
-                            # omit rows/columns where no corner information in scrip file
-                            orig3dOceanMask = orig3dOceanMask[:,:,1:-1]
-                            nz,nx,ny = np.shape(orig3dOceanMask)
-                            orig3dOceanMask = orig3dOceanMask.reshape(nz, nx * ny)
-                            od3mBool = 1
-                        elif tile == 27 and o3dmBool == 0:
-                            o3dm = ds_ecco['land'].values
-                            # omit rows/columns where no corner information in scrip file
-                            o3dm = o3dm[:,0:-1,0:-1]
-                            nz,nx,ny = np.shape(o3dm)
-                            o3dm = o3dm.reshape(nz, nx * ny)
-                            orig3dOceanMask = np.concatenate((orig3dOceanMask, o3dm), axis=1)
-                            o3dmBool = 1
-                        
-                        # set MALI invalid value
-                        boolZ,boolXY = np.where(orig3dOceanMask == 0)
-                        for iZ,iXY in zip(boolZ,boolXY):
-                            theta[:,iZ,iXY] = 1e36
-                        
-                        thetaBool = 1
-                        
-                    # Repeat for sea ice fraction if needed
-                    elif 'SIarea' in file and self.options.sia:
-                        siaBool = 1
-                        validFile = self.options.eccoDir + '/SIarea.' + paddedTile + '.nc'
-                        ds_ecco = xr.open_dataset(validFile)
-                        if tile == 14:
-                            sia = ds_ecco['SIarea'][:].values
-                            # omit rows/columns where no corner information in scrip file
-                            sia = sia[:,:,1:-1]
-                            nt,nx,ny = np.shape(sia)
-                            sia = sia.reshape(nt, nx * ny)
-                        elif tile == 27:
-                            si = ds_ecco['SIarea'][:].values
-                            # omit rows/columns where no corner information in scrip file
-                            si = si[:,0:-1,0:-1]
-                            nt,nx,ny = np.shape(si)
-                            si = si.reshape(nt, nx * ny)
-                            sia = np.concatenate((sia,si), axis=1)
+            salt_file = os.path.join(self.options.eccoDir, f"SALT.{paddedTile}.nc")
+            theta_file = os.path.join(self.options.eccoDir, f"THETA.{paddedTile}.nc")
+            sia_file = os.path.join(self.options.eccoDir, f"SIarea.{paddedTile}.nc")
 
-            if (saltBool == 0):
+            if not os.path.exists(salt_file):
                 raise ValueError(f"SALT netcdf file for tile {tile} not found in {self.options.eccoDir}")
-
-            if (thetaBool == 0):
+            if not os.path.exists(theta_file):
                 raise ValueError(f"THETA netcdf file for tile {tile} not found in {self.options.eccoDir}")
-                
-            if (self.options.sia and siaBool == 0):
+            if self.options.sia and not os.path.exists(sia_file):
                 raise ValueError(f"SIarea netcdf file for tile {tile} not found in {self.options.eccoDir}")
+
+            with xr.open_dataset(salt_file) as ds_salt:
+                if z is None:
+                    z = ds_salt['dep'].values
+                if time_vals is None:
+                    time_vals = ds_salt['tim'].values
+                i_idx = tile_geom[tile]['i']
+                j_idx = tile_geom[tile]['j']
+                sal_tile = ds_salt['SALT'][:].values
+                nt, nz, nx, ny = np.shape(sal_tile)
+                sal_tiles.append(sal_tile[:, :, i_idx, j_idx])
+
+                # ECCO 'land' is equivalent to MALI's orig3dOceanMask.
+                mask_tile = ds_salt['land'][:].values
+                mask_tiles.append(mask_tile[:, i_idx, j_idx])
+
+            with xr.open_dataset(theta_file) as ds_theta:
+                theta_tile = ds_theta['THETA'][:].values
+                theta_tiles.append(theta_tile[:, :, i_idx, j_idx])
+
+            if self.options.sia:
+                with xr.open_dataset(sia_file) as ds_sia_in:
+                    sia_tile = ds_sia_in['SIarea'][:].values
+                    sia_tiles.append(sia_tile[:, i_idx, j_idx])
+
+        sal = np.concatenate(sal_tiles, axis=2)
+        theta = np.concatenate(theta_tiles, axis=2)
+        orig3dOceanMask = np.concatenate(mask_tiles, axis=1)
+        nt = sal.shape[0]
+        if self.options.sia:
+            sia = np.concatenate(sia_tiles, axis=1)
+
+        # Set MALI invalid value over non-ocean cells.
+        ocean_mask = orig3dOceanMask[np.newaxis, :, :] > 0
+        sal = np.where(ocean_mask, sal, 1e36)
+        theta = np.where(ocean_mask, theta, 1e36)
 
         # combine into new netcdf. Need to load depth and time from original ecco files. Assuming time/depth is consistent
         # across all files, just load info from most recent
@@ -211,7 +279,7 @@ class eccoToMaliInterp:
         # Save ECCO time variable as datetime string. Will be converted into xtime format when saving final output file
         # Subtract one month from each time step. Ecco to output every month as an average of the previous month. We
         # want to force MALI with ECCO data from the same month (avoid 1 month lag)
-        time = ds_ecco['tim'].values
+        time = time_vals
         self.xtime_str = [(pd.to_datetime(dt) - pd.DateOffset(months=1)).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
     
         # save unstructured variables with MALI/MPAS-O names 
@@ -375,6 +443,8 @@ class eccoToMaliInterp:
 
             # Use geojson to add any additional cells to icebergFjordMask
             if self.options.geojson is not None:
+                if shape is None or prep is None or Point is None:
+                    raise ImportError("shapely is required when using --geojson")
                 with open(self.options.geojson) as f:
                     geo = json.load(f)
                     polygon = prep(shape(geo["features"][0]["geometry"]))
@@ -477,165 +547,80 @@ class eccoToMaliInterp:
     def create_ECCO_scrip_file(self):
         
         print("Creating ECCO scrip file")
+        tile_geom = self._build_greenland_tile_geometry()
 
-        for tile in self.tileNums :
-            # start processing with grid files
-            paddedTile = str(tile).zfill(4)
-            gridFile = self.options.eccoDir + '/GRID.' + paddedTile + '.nc'
-            grd = xr.open_dataset(gridFile)
+        lon_parts = []
+        lat_parts = []
+        lon_corner1_parts = []
+        lon_corner2_parts = []
+        lon_corner3_parts = []
+        lon_corner4_parts = []
+        lat_corner1_parts = []
+        lat_corner2_parts = []
+        lat_corner3_parts = []
+        lat_corner4_parts = []
 
-            # identify cell centers and corners
-            # lat/lon centers
-            XC = grd['XC'][:].values
-            YC = grd['YC'][:].values
-            
-            # lat/lon corners
-            XG = grd['XG'][:].values
-            YG = grd['YG'][:].values
+        for tile in self.tileNums:
+            lon_parts.append(tile_geom[tile]['center_lon'])
+            lat_parts.append(tile_geom[tile]['center_lat'])
+            lon_corner1_parts.append(tile_geom[tile]['corner_lon'][:, 0])
+            lon_corner2_parts.append(tile_geom[tile]['corner_lon'][:, 1])
+            lon_corner3_parts.append(tile_geom[tile]['corner_lon'][:, 2])
+            lon_corner4_parts.append(tile_geom[tile]['corner_lon'][:, 3])
+            lat_corner1_parts.append(tile_geom[tile]['corner_lat'][:, 0])
+            lat_corner2_parts.append(tile_geom[tile]['corner_lat'][:, 1])
+            lat_corner3_parts.append(tile_geom[tile]['corner_lat'][:, 2])
+            lat_corner4_parts.append(tile_geom[tile]['corner_lat'][:, 3])
 
-            Xse_corner = np.zeros((XC.shape))
-            Xsw_corner = np.zeros((XC.shape))
-            Xnw_corner = np.zeros((XC.shape))
-            Xne_corner = np.zeros((XC.shape))
+        lon = np.concatenate(lon_parts)
+        lat = np.concatenate(lat_parts)
+        lon_corner1 = np.concatenate(lon_corner1_parts)
+        lon_corner2 = np.concatenate(lon_corner2_parts)
+        lon_corner3 = np.concatenate(lon_corner3_parts)
+        lon_corner4 = np.concatenate(lon_corner4_parts)
+        lat_corner1 = np.concatenate(lat_corner1_parts)
+        lat_corner2 = np.concatenate(lat_corner2_parts)
+        lat_corner3 = np.concatenate(lat_corner3_parts)
+        lat_corner4 = np.concatenate(lat_corner4_parts)
 
-            Yse_corner = np.zeros((YC.shape))
-            Ysw_corner = np.zeros((YC.shape))
-            Ynw_corner = np.zeros((YC.shape))
-            Yne_corner = np.zeros((YC.shape))
+        # Create scrip file for combined unstructured grid.
+        grid_corner_lon = np.zeros((len(lon_corner1), 4))
+        grid_corner_lat = np.zeros((len(lat_corner1), 4))
+        grid_corner_lon[:, 0] = lon_corner1
+        grid_corner_lon[:, 1] = lon_corner2
+        grid_corner_lon[:, 2] = lon_corner3
+        grid_corner_lon[:, 3] = lon_corner4
+        grid_corner_lat[:, 0] = lat_corner1
+        grid_corner_lat[:, 1] = lat_corner2
+        grid_corner_lat[:, 2] = lat_corner3
+        grid_corner_lat[:, 3] = lat_corner4
+        grid_imask = np.ones((len(lon),))
+        grid_dims = np.array(lon.shape)
 
-            nx,ny = XC.shape
-            for i in np.arange(0,nx-1):
-                for ii in np.arange(0,ny-1):
-                    Xse_corner[i,ii] = XG[i,ii]
-                    Xsw_corner[i,ii] = XG[i+1,ii]
-                    Xnw_corner[i,ii] = XG[i+1,ii+1]
-                    Xne_corner[i,ii] = XG[i,ii+1]
-
-                    Yse_corner[i,ii] = YG[i,ii]
-                    Ysw_corner[i,ii] = YG[i+1,ii]
-                    Ynw_corner[i,ii] = YG[i+1,ii+1]
-                    Yne_corner[i,ii] = YG[i,ii+1]
-                    
-            if tile == 14:
-                # Stitch together corner info from neighboring tile
-                gridFile = self.options.eccoDir + '/GRID.0027.nc'
-                grd27 = xr.open_dataset(gridFile)
-                xg27 = grd27['XG'][:].values
-                yg27 = grd27['YG'][:].values
-                xg = np.flip(xg27[1:,0])
-                yg = np.flip(yg27[1:,0])
-
-                for i in np.arange(0,ny-1):        
-                    Xse_corner[nx-1,i] = XG[nx-1,i]
-                    Xne_corner[nx-1,i] = XG[nx-1,i+1]
-                    Xnw_corner[nx-1,i] = xg[i]
-                    Xsw_corner[nx-1,i] = xg[i-1]
-                    
-                    Yse_corner[nx-1,i] = YG[nx-1,i]
-                    Yne_corner[nx-1,i] = YG[nx-1,i+1] 
-                    Ynw_corner[nx-1,i] = yg[i]
-                    Ysw_corner[nx-1,i] = yg[i-1]
-        
-                # Remove edge cells without corner information
-                XC = XC[:,1:-1]
-                YC = YC[:,1:-1]
-                Xse_corner = Xse_corner[:,1:-1]
-                Xne_corner = Xne_corner[:,1:-1]
-                Xnw_corner = Xnw_corner[:,1:-1]
-                Xsw_corner = Xsw_corner[:,1:-1]
-                Yse_corner = Yse_corner[:,1:-1]
-                Yne_corner = Yne_corner[:,1:-1]
-                Ynw_corner = Ynw_corner[:,1:-1]
-                Ysw_corner = Ysw_corner[:,1:-1]
-        
-                lon = XC.flatten()
-                lat = YC.flatten()
-                lon_corner1 = Xse_corner.flatten()
-                lon_corner2 = Xsw_corner.flatten()
-                lon_corner3 = Xnw_corner.flatten()
-                lon_corner4 = Xne_corner.flatten()
-                lat_corner1 = Yse_corner.flatten()
-                lat_corner2 = Ysw_corner.flatten()
-                lat_corner3 = Ynw_corner.flatten()
-                lat_corner4 = Yne_corner.flatten()
-            
-            elif tile == 27 :
-                # Remove edge cells without corner information
-                XC = XC[0:-1,0:-1]
-                YC = YC[0:-1,0:-1]
-                Xse_corner = Xse_corner[0:-1,0:-1]
-                Xne_corner = Xne_corner[0:-1,0:-1]
-                Xnw_corner = Xnw_corner[0:-1,0:-1]
-                Xsw_corner = Xsw_corner[0:-1,0:-1]
-                Yse_corner = Yse_corner[0:-1,0:-1]
-                Yne_corner = Yne_corner[0:-1,0:-1]
-                Ynw_corner = Ynw_corner[0:-1,0:-1]
-                Ysw_corner = Ysw_corner[0:-1,0:-1]
-
-                ln = XC.flatten()
-                lon = np.concatenate((lon, ln))
-                lt = YC.flatten()
-                lat = np.concatenate((lat,lt))
-                lnc1 = Xse_corner.flatten()
-                lon_corner1 = np.concatenate((lon_corner1,lnc1))
-                lnc2 = Xsw_corner.flatten()
-                lon_corner2 = np.concatenate((lon_corner2,lnc2))
-                lnc3 = Xnw_corner.flatten()
-                lon_corner3 = np.concatenate((lon_corner3,lnc3))
-                lnc4 = Xne_corner.flatten()
-                lon_corner4 = np.concatenate((lon_corner4,lnc4))
-                
-                ltc1 = Yse_corner.flatten()
-                lat_corner1 = np.concatenate((lat_corner1,ltc1))
-                ltc2 = Ysw_corner.flatten()
-                lat_corner2 = np.concatenate((lat_corner2,ltc2))
-                ltc3 = Ynw_corner.flatten()
-                lat_corner3 = np.concatenate((lat_corner3,ltc3))
-                ltc4 = Yne_corner.flatten()
-                lat_corner4 = np.concatenate((lat_corner4,ltc4))
-
-                # Create scrip file for combined unstructured grid
-                grid_corner_lon = np.zeros((len(lon_corner1),4))
-                grid_corner_lat = np.zeros((len(lat_corner1),4))
-                grid_center_lon = np.zeros((len(lon),))
-                grid_center_lat = np.zeros((len(lat),))
-                grid_corner_lon[:,0] = lon_corner1
-                grid_corner_lon[:,1] = lon_corner2
-                grid_corner_lon[:,2] = lon_corner3
-                grid_corner_lon[:,3] = lon_corner4
-                grid_corner_lat[:,0] = lat_corner1
-                grid_corner_lat[:,1] = lat_corner2
-                grid_corner_lat[:,2] = lat_corner3
-                grid_corner_lat[:,3] = lat_corner4
-                grid_center_lon = lon
-                grid_center_lat = lat
-                grid_imask = np.ones((len(lon),)) # assume using all points
-                grid_dims = np.array(lon.shape)
-
-                scrip = xr.Dataset()
-                scrip['grid_corner_lon'] = xr.DataArray(grid_corner_lon.astype('float64'),
-                                                        dims=('grid_size','grid_corners'),
-                                                        attrs={'units':'degrees'})
-                scrip['grid_corner_lat'] = xr.DataArray(grid_corner_lat.astype('float64'),
-                                                        dims=('grid_size','grid_corners'),
-                                                        attrs={'units':'degrees'})
-                scrip['grid_center_lon'] = xr.DataArray(grid_center_lon.astype('float64'),
-                                                        dims=('grid_size'),
-                                                        attrs={'units':'degrees'})
-                scrip['grid_center_lat'] = xr.DataArray(grid_center_lat.astype('float64'),
-                                                        dims=('grid_size'),
-                                                        attrs={'units':'degrees'})
-                scrip['grid_imask'] = xr.DataArray(grid_imask.astype('int32'),
-                                                        dims=('grid_size'),
-                                                        attrs={'units':'unitless'})
-                scrip['grid_dims'] = xr.DataArray(grid_dims.astype('int32'),
-                                                        dims=('grid_rank'),
-                                                        attrs={'units':'unitless'})
-                self.ecco_scripfile = 'ecco_combined_unstructured.scrip.nc'
-                scrip.to_netcdf(self.ecco_scripfile)
-                scrip.close()
-                subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.ecco_scripfile])
-                print("ECCO scrip file complete")
+        scrip = xr.Dataset()
+        scrip['grid_corner_lon'] = xr.DataArray(grid_corner_lon.astype('float64'),
+                                                dims=('grid_size', 'grid_corners'),
+                                                attrs={'units': 'degrees'})
+        scrip['grid_corner_lat'] = xr.DataArray(grid_corner_lat.astype('float64'),
+                                                dims=('grid_size', 'grid_corners'),
+                                                attrs={'units': 'degrees'})
+        scrip['grid_center_lon'] = xr.DataArray(lon.astype('float64'),
+                                                dims=('grid_size'),
+                                                attrs={'units': 'degrees'})
+        scrip['grid_center_lat'] = xr.DataArray(lat.astype('float64'),
+                                                dims=('grid_size'),
+                                                attrs={'units': 'degrees'})
+        scrip['grid_imask'] = xr.DataArray(grid_imask.astype('int32'),
+                                           dims=('grid_size'),
+                                           attrs={'units': 'unitless'})
+        scrip['grid_dims'] = xr.DataArray(grid_dims.astype('int32'),
+                                          dims=('grid_rank'),
+                                          attrs={'units': 'unitless'})
+        self.ecco_scripfile = 'ecco_combined_unstructured.scrip.nc'
+        scrip.to_netcdf(self.ecco_scripfile)
+        scrip.close()
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.ecco_scripfile])
+        print("ECCO scrip file complete")
 
 def main():
         run = eccoToMaliInterp()
