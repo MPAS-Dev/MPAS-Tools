@@ -21,8 +21,10 @@ Output: a netCDF file with ``damageCalvingThreshold(Time, nCells)``, constant
 within each region.  Where regions overlap the largest value is used (least
 retreat).  Cells outside all regions get the median of the calibrated values.
 
-Run in the conda env mali-calv-calib, e.g.:
-  python calibrate_damage_threshold.py -i damage2010.nc -o damageCalvingThreshold.nc
+Requires numpy, scipy, netCDF4, matplotlib, shapely (>=2), pyproj and
+geometric_features.  Example:
+  calibrate_damage_threshold_for_cd_calving.py -i output.nc -m mesh.nc \\
+      -o damageCalvingThreshold.nc
 """
 import argparse
 import glob
@@ -45,18 +47,26 @@ MASK_ICE = 32
 MASK_DYNAMIC = 2
 MASK_FLOATING = 4
 
-DEFAULT_GF = os.path.expanduser('~/Documents/PROJECTS/FAnSSIE/CODE/geometric_features')
-
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument('-i', '--input', default='damage2010.nc')
+    p.add_argument('-i', '--input', required=True,
+                   help='MALI output file with cellMask, damage, xCell, yCell, '
+                        'dcEdge and cellsOnVertex')
+    p.add_argument('-m', '--mesh', required=True,
+                   help='MALI mesh file providing bedTopography (same cells as input)')
     p.add_argument('-o', '--output', default='damageCalvingThreshold.nc')
-    p.add_argument('-g', '--geometric-features', default=DEFAULT_GF,
-                   help='path to the geometric_features repo checkout containing the '
-                        'new ice_shelf_extended regions')
-    p.add_argument('--region-glob', default='ice_shelf_extended_*')
+    p.add_argument('--region-tag', default='ais_ice_shelf_calving_calibration',
+                   help='geometric_features tag selecting the landice regions to '
+                        'calibrate (default ais_ice_shelf_calving_calibration)')
+    p.add_argument('-g', '--geometric-features', default=None,
+                   help='optional path to a local geometric_features checkout; if '
+                        'given, regions are read from its geometric_data/landice/'
+                        'region directory (names matching --region-glob) instead '
+                        'of via the geometric_features package')
+    p.add_argument('--region-glob', default='*',
+                   help='region-name pattern used with --geometric-features')
     p.add_argument('--max-area-loss', type=float, default=0.05,
                    help='floating-area fraction that must stay strictly below this '
                         '(default 0.05)')
@@ -65,8 +75,6 @@ def parse_args():
                         'growth (default 0)')
     p.add_argument('--crs', default='EPSG:3031',
                    help='projection of xCell/yCell (default EPSG:3031)')
-    p.add_argument('-m', '--mesh', default='AIS_4to20km_r03_20260925_m1o5_2yrRelax.nc',
-                   help='mesh file providing bedTopography (same cells as input)')
     p.add_argument('--time-index', type=int, default=0)
     p.add_argument('--fig-dir', default='figures',
                    help='directory for per-region figures (default figures)')
@@ -90,19 +98,28 @@ def neighbors_from_vertices(cells_on_vertex, ncells):
     return adj
 
 
-def load_regions(gf_path, pattern, crs):
+def load_regions(gf_path, pattern, tag, crs):
+    """Return {name: shapely geometry in projected coordinates}."""
     to_proj = pyproj.Transformer.from_crs('EPSG:4326', crs, always_xy=True).transform
+    features = {}
+    if gf_path is None:
+        from geometric_features import GeometricFeatures
+        fc = GeometricFeatures().read('landice', 'region', tags=[tag])
+        for feat in fc.features:
+            features[feat['properties']['name']] = [feat]
+    else:
+        files = sorted(glob.glob(os.path.join(gf_path, 'geometric_data', 'landice',
+                                              'region', pattern, 'region.geojson')))
+        for f in files:
+            with open(f) as fp:
+                gj = json.load(fp)
+            features[os.path.basename(os.path.dirname(f))] = \
+                gj['features'] if gj['type'] == 'FeatureCollection' else [gj]
+    if not features:
+        raise SystemExit('No regions found; check --region-tag / --geometric-features')
     regions = {}
-    files = sorted(glob.glob(os.path.join(gf_path, 'geometric_data', 'landice', 'region',
-                                          pattern, 'region.geojson')))
-    if not files:
-        raise SystemExit(f'No regions found under {gf_path}/geometric_data/landice/region')
-    for f in files:
-        name = os.path.basename(os.path.dirname(f))
-        with open(f) as fp:
-            gj = json.load(fp)
-        feats = gj['features'] if gj['type'] == 'FeatureCollection' else [gj]
-        geoms = [shape(ft['geometry']) for ft in feats]
+    for name in sorted(features):
+        geoms = [shape(ft['geometry']) for ft in features[name]]
         geom = shapely.union_all([shapely.segmentize(g, 0.05) for g in geoms])
         regions[name] = transform(to_proj, geom)
     return regions
@@ -202,7 +219,8 @@ def main():
     print(f'{front.sum()} calving-front cells, {dyn_float.sum()} dynamic floating cells, '
           f'cell area {area[0] / 1e6:.2f} km^2')
 
-    regions = load_regions(args.geometric_features, args.region_glob, args.crs)
+    regions = load_regions(args.geometric_features, args.region_glob, args.region_tag,
+                           args.crs)
     os.makedirs(args.fig_dir, exist_ok=True)
     result = {}
     hdr = f"{'region':45s} {'front':>6s} {'d_p10':>6s} {'d_p50':>6s} {'d_p90':>6s} " \
