@@ -33,6 +33,7 @@ CONDA_ONLY = frozenset(
 
 # conda-forge package names that differ from their PyPI equivalents
 CONDA_TO_PYPI = {
+    'dask-core': 'dask',
     'matplotlib-base': 'matplotlib',
     'python-igraph': 'igraph',
 }
