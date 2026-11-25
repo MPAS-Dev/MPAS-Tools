@@ -10,7 +10,7 @@ ${PYTHON} -m pip install . --no-deps --no-build-isolation -vv
 cd ${SRC_DIR}/ocean/smooth_topo
 mkdir build
 cd build
-cmake \
+cmake ${CMAKE_ARGS} \
   -D CMAKE_INSTALL_PREFIX=${PREFIX} \
   -D CMAKE_BUILD_TYPE=Release \
   ..
@@ -21,7 +21,7 @@ cmake --install .
 cd ${SRC_DIR}/mesh_tools/seaice_grid_tools
 mkdir build
 cd build
-cmake \
+cmake ${CMAKE_ARGS} \
   -D CMAKE_INSTALL_PREFIX=${PREFIX} \
   -D CMAKE_BUILD_TYPE=Release \
   ..
@@ -32,7 +32,7 @@ cmake --install .
 cd ${SRC_DIR}/mesh_tools/mesh_conversion_tools
 mkdir build
 cd build
-cmake \
+cmake ${CMAKE_ARGS} \
   -D CMAKE_INSTALL_PREFIX=${PREFIX} \
   -D CMAKE_BUILD_TYPE=Release \
   ..
@@ -43,7 +43,7 @@ cp MpasMaskCreator.x ${PREFIX}/bin
 cd ${SRC_DIR}/mesh_tools/mesh_conversion_tools_netcdf_c
 mkdir build
 cd build
-cmake \
+cmake ${CMAKE_ARGS} \
   -D CMAKE_INSTALL_PREFIX=${PREFIX} \
   -D CMAKE_BUILD_TYPE=Release \
   ..

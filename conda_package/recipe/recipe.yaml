@@ -35,9 +35,8 @@ requirements:
     - libnetcdf * nompi_*
     - netcdf-fortran
     - netcdf-fortran * nompi_*
-    - setuptools
+    - setuptools >=77
     - pip
-    - netcdf4
     - if: osx
       then: llvm-openmp
   run:
