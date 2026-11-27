@@ -17,6 +17,16 @@ thin low-damage margins that protect a high-damage interior.)  The calibrated
 threshold is the smallest T for which the floating-area loss stays within
 --max-area-loss (default 5%), plus an optional --growth-margin (default 0).
 
+By default (--criterion percentile) the threshold is instead set to a
+percentile (--percentile, default 90) of the damage on the calving-front cells
+(--percentile-basis front), on the floating cells behind the front, i.e. not on
+the front but within --near-dist-km (default 50 km) of it (basis behind), or the
+larger of those two percentiles (basis max, the default, which is the safer
+choice).  Floating cells with damage below --min-damage (default 0.05) are left
+out of these statistics and of the histograms.  The floating-area loss that
+results is still computed and reported.  --criterion area-loss selects the
+area-loss method described above.
+
 Output: a netCDF file with ``damageCalvingThreshold(Time, nCells)``, constant
 within each region.  Where regions overlap the largest value is used (least
 retreat).  Cells outside all regions get the median of the calibrated values.
@@ -27,25 +37,19 @@ geometric_features.  Example:
       -o damageCalvingThreshold.nc
 """
 import argparse
-import glob
-import json
 import os
 
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import matplotlib.tri as mtri
 import netCDF4
 import numpy as np
-import pyproj
 import shapely
-from shapely.geometry import shape
-from shapely.ops import transform
 
-# MALI cellMask bits (mpas_li_mask.F)
-MASK_ICE = 32
-MASK_DYNAMIC = 2
-MASK_FLOATING = 4
+from calving_calibration_common import (
+    add_region_arguments, combine_region_values, draw_base_map, estimate_cell_area,
+    finish_map, identify_front_cells, load_regions, neighbors_from_vertices,
+    read_bed_topography, region_mask, write_calibration_file)
 
 
 def parse_args():
@@ -54,117 +58,119 @@ def parse_args():
     p.add_argument('-i', '--input', required=True,
                    help='MALI output file with cellMask, damage, xCell, yCell, '
                         'dcEdge and cellsOnVertex')
-    p.add_argument('-m', '--mesh', required=True,
-                   help='MALI mesh file providing bedTopography (same cells as input)')
+    p.add_argument('-m', '--mesh', default=None,
+                   help='MALI mesh file providing bedTopography (same cells as input); '
+                        'not needed if the input file has bedTopography')
     p.add_argument('-o', '--output', default='damageCalvingThreshold.nc')
-    p.add_argument('--region-tag', default='ais_ice_shelf_calving_calibration',
-                   help='geometric_features tag selecting the landice regions to '
-                        'calibrate (default ais_ice_shelf_calving_calibration)')
-    p.add_argument('-g', '--geometric-features', default=None,
-                   help='optional path to a local geometric_features checkout; if '
-                        'given, regions are read from its geometric_data/landice/'
-                        'region directory (names matching --region-glob) instead '
-                        'of via the geometric_features package')
-    p.add_argument('--region-glob', default='*',
-                   help='region-name pattern used with --geometric-features')
+    add_region_arguments(p)
     p.add_argument('--max-area-loss', type=float, default=0.05,
                    help='floating-area fraction that must stay strictly below this '
                         '(default 0.05)')
+    p.add_argument('--criterion', choices=['area-loss', 'percentile'],
+                   default='percentile',
+                   help='how to set each region\'s threshold (default percentile)')
+    p.add_argument('--percentile', type=float, default=90.0,
+                   help='percentile of damage used by --criterion percentile '
+                        '(default 90)')
+    p.add_argument('--percentile-basis', choices=['front', 'behind', 'max'],
+                   default='max',
+                   help='cells the percentile is taken over: calving-front cells, '
+                        'floating cells behind the front, or the larger of the two '
+                        'percentiles (default max)')
+    p.add_argument('--min-damage', type=float, default=0.05,
+                   help='floating cells with damage below this are excluded from '
+                        'the percentile statistics and histograms (default 0.05)')
+    p.add_argument('--near-dist-km', type=float, default=50.0,
+                   help='how far behind the calving front (km) the cells '
+                        'counted as "behind the front" extend (default 50)')
     p.add_argument('--growth-margin', type=float, default=0.0,
                    help='damage added to the minimal threshold to favor minor '
                         'growth (default 0)')
-    p.add_argument('--crs', default='EPSG:3031',
-                   help='projection of xCell/yCell (default EPSG:3031)')
     p.add_argument('--time-index', type=int, default=0)
     p.add_argument('--fig-dir', default='figures',
                    help='directory for per-region figures (default figures)')
     return p.parse_args()
 
 
-def neighbors_from_vertices(cells_on_vertex, ncells):
-    """Return a sparse symmetric adjacency (CSR) of cells sharing a vertex pair
-    (cellsOnVertex is 1-based, 0 = missing)."""
-    from scipy.sparse import coo_matrix
-    cov = cells_on_vertex - 1
-    pairs = []
-    for a, b in ((0, 1), (1, 2), (2, 0)):
-        ok = (cov[:, a] >= 0) & (cov[:, b] >= 0) & (cov[:, a] != cov[:, b])
-        pairs.append(np.stack([cov[ok, a], cov[ok, b]], axis=1))
-    pairs = np.concatenate(pairs)
-    adj = coo_matrix((np.ones(len(pairs), dtype=np.int8), (pairs[:, 0], pairs[:, 1])),
-                     shape=(ncells, ncells)).tocsr()
-    adj.data[:] = 1
-    adj = adj.maximum(adj.T)  # duplicates collapse to 1
-    return adj
+def region_groups(in_reg, front, floating, damage, x, y, near_dist, min_damage):
+    """Indices of the region's calving-front cells and of its other floating
+    cells within near_dist (m) of the calving front ("behind the front").
+    Cells with damage < min_damage are excluded from both groups."""
+    from scipy.spatial import cKDTree
+    keep = in_reg & floating & (damage >= min_damage)
+    fr_all = np.where(in_reg & floating & front)[0]  # distances use the whole front
+    fr = np.where(keep & front)[0]
+    cand = np.where(keep & ~front)[0]
+    if len(fr_all) == 0 or len(cand) == 0:
+        return fr, cand[:0]
+    dist, _ = cKDTree(np.column_stack([x[fr_all], y[fr_all]])).query(
+        np.column_stack([x[cand], y[cand]]))
+    return fr, cand[dist <= near_dist]
 
 
-def load_regions(gf_path, pattern, tag, crs):
-    """Return {name: shapely geometry in projected coordinates}."""
-    to_proj = pyproj.Transformer.from_crs('EPSG:4326', crs, always_xy=True).transform
-    features = {}
-    if gf_path is None:
-        from geometric_features import GeometricFeatures
-        fc = GeometricFeatures().read('landice', 'region', tags=[tag])
-        for feat in fc.features:
-            features[feat['properties']['name']] = [feat]
-    else:
-        files = sorted(glob.glob(os.path.join(gf_path, 'geometric_data', 'landice',
-                                              'region', pattern, 'region.geojson')))
-        for f in files:
-            with open(f) as fp:
-                gj = json.load(fp)
-            features[os.path.basename(os.path.dirname(f))] = \
-                gj['features'] if gj['type'] == 'FeatureCollection' else [gj]
-    if not features:
-        raise SystemExit('No regions found; check --region-tag / --geometric-features')
-    regions = {}
-    for name in sorted(features):
-        geoms = [shape(ft['geometry']) for ft in features[name]]
-        geom = shapely.union_all([shapely.segmentize(g, 0.05) for g in geoms])
-        regions[name] = transform(to_proj, geom)
-    return regions
+def plot_histograms(ax, thr, fr, near, damage, near_dist, label, min_damage):
+    """Overlaid histograms of damage on the region's calving-front cells and on
+    its other floating-ice cells within near_dist (m) of the calving front."""
+    bins = np.linspace(0.0, 1.0, 41)
+    ax.hist(damage[fr], bins=bins, density=True, alpha=0.55, color='tab:red',
+            label=f'calving front (n={len(fr)})')
+    ax.hist(damage[near], bins=bins, density=True, alpha=0.55, color='tab:blue',
+            label=f'not on front, within {near_dist / 1e3:.0f} km (n={len(near)})')
+    ax.axvline(thr, color='k', ls='--', label=f'chosen threshold = {thr:.3f} ({label})')
+    ax.set_xlabel('damage')
+    ax.set_ylabel('probability density')
+    ax.set_title(f'Damage (floating ice, damage >= {min_damage:g}): '
+                 'calving front vs. nearby')
+    ax.legend(fontsize=8)
 
 
-def plot_region(name, geom, thr, loss, removed, in_reg, front, ice, damage, x, y, dc, fig_dir):
-    """Map of damage on ice cells near a region, with the chosen-threshold contour."""
-    # zoom to the region's front cells (the region itself extends far over ocean)
-    fz = np.where(front & in_reg)[0]
-    x0, x1, y0, y1 = x[fz].min(), x[fz].max(), y[fz].min(), y[fz].max()
-    pad = 0.1 * max(x1 - x0, y1 - y0) + 20 * dc
-    box = ice & (x > x0 - pad) & (x < x1 + pad) & (y > y0 - pad) & (y < y1 + pad)
-    idx = np.where(box)[0]
-    fig, ax = plt.subplots(figsize=(8, 7))
-    if len(idx) > 3:
-        tri = mtri.Triangulation(x[idx], y[idx])
-        xt, yt = x[idx][tri.triangles], y[idx][tri.triangles]
-        edge = np.max(np.hypot(xt - np.roll(xt, 1, axis=1), yt - np.roll(yt, 1, axis=1)), axis=1)
-        tri.set_mask(edge > 1.8 * dc)
+def plot_map(fig, ax, geom, thr, loss, removed, in_reg, front, ice, floating, damage, x, y,
+             dc):
+    """Map of damage on ice cells near a region, with contours at the chosen
+    threshold and at 0.01, 0.05 and 0.1 below it.  The color range starts at the
+    lowest damage on the region's floating ice."""
+    tri, idx, extent = draw_base_map(ax, geom, in_reg, front, ice, floating, x, y, dc)
+    if tri is not None:
         d = damage[idx]
-        pc = ax.tripcolor(tri, d, vmin=0, vmax=1, cmap='viridis', shading='gouraud')
+        dmin = damage[in_reg & floating].min()
+        pc = ax.tripcolor(tri, d, vmin=dmin, vmax=1, cmap='turbo', shading='gouraud')
         fig.colorbar(pc, ax=ax, label='damage', shrink=0.8)
-        if d.min() < thr < d.max():
-            ax.tricontour(tri, d, levels=[thr], colors='red', linewidths=1.5)
+        for off, color, ls, lw in ((0.1, 'white', ':', 1.0), (0.05, 'white', '--', 1.0),
+                                   (0.01, 'white', '-', 1.0), (0.0, 'red', '-', 1.5)):
+            lev = thr - off
+            if d[floating[idx]].min() < lev < d[floating[idx]].max():
+                ax.tricontour(tri, d, levels=[lev], colors=color, linestyles=ls,
+                              linewidths=lw)
     fi = np.where(front & in_reg)[0]
     ri = np.where(removed)[0]
     ax.scatter(x[ri], y[ri], s=6, marker='s', c='red', alpha=0.6, linewidths=0)
     ax.scatter(x[fi], y[fi], s=10, c='none', edgecolors='white', linewidths=0.6)
-    gs = [geom] if geom.geom_type == 'Polygon' else list(geom.geoms)
-    for g in gs:
-        ax.plot(*g.exterior.xy, 'k--', lw=0.8)
-    ax.set_autoscale_on(False)
-    ax.plot([], [], 'r-', label=f'damage = {thr:.3f} (chosen threshold)')
+    finish_map(ax, geom, extent)
+    ax.scatter([], [], s=30, marker='s', c='0.6', label='grounded ice')
+    ax.plot([], [], 'r-', lw=1.5, label=f'damage = {thr:.3f} (chosen threshold)')
+    for off, ls in ((0.01, '-'), (0.05, '--'), (0.1, ':')):
+        ax.plot([], [], color='white', ls=ls, lw=1.0,
+                label=f'damage = {thr - off:.3f} (threshold - {off:g})')
     ax.scatter([], [], s=10, c='none', edgecolors='k', label='calving-front cells (outlined)')
     ax.scatter([], [], s=12, marker='s', c='red', alpha=0.6,
                label=f'cells removed (connected to terminus): {100 * loss:.2f}% of floating area')
-    ax.legend(loc='lower left', fontsize=8)
-    ax.set_aspect('equal')
-    ax.set_xlim(x0 - pad, x1 + pad)
-    ax.set_ylim(y0 - pad, y1 + pad)
-    ax.set_title(f'{name}\nchosen damageCalvingThreshold = {thr:.3f}  (area removed {100 * loss:.2f}%)')
-    ax.set_xlabel('x (m)')
-    ax.set_ylabel('y (m)')
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.2), fontsize=8, ncol=2,
+              facecolor='0.35', labelcolor='white')
+    ax.set_title(f'Damage map (area removed {100 * loss:.2f}%)')
+
+
+def plot_region(name, geom, thr, loss, removed, in_reg, front, ice, floating, damage, x, y,
+                dc, fig_dir, fr, near, near_dist, label, min_damage):
+    """Two-panel figure: damage map with threshold contours (left) and overlaid
+    histograms of front vs. nearby damage (right)."""
+    fig, (ax_map, ax_hist) = plt.subplots(1, 2, figsize=(17, 8),
+                                          gridspec_kw={'width_ratios': [1.25, 1]})
+    plot_map(fig, ax_map, geom, thr, loss, removed, in_reg, front, ice, floating, damage,
+             x, y, dc)
+    plot_histograms(ax_hist, thr, fr, near, damage, near_dist, label, min_damage)
+    fig.suptitle(f'{name}: chosen damageCalvingThreshold = {thr:.3f}', fontsize=13)
     fig.tight_layout()
-    fig.savefig(os.path.join(fig_dir, f'{name}.png'), dpi=150)
+    fig.savefig(os.path.join(fig_dir, f'{name}.png'), dpi=130, bbox_inches='tight')
     plt.close(fig)
 
 
@@ -190,32 +196,17 @@ def main():
     ncells = len(ds.dimensions['nCells'])
     mask = ds['cellMask'][t, :].astype(int)
     damage = np.asarray(ds['damage'][t, :], dtype=float)
-    with netCDF4.Dataset(args.mesh) as mesh:
-        bed = np.asarray(mesh['bedTopography'][0, :], dtype=float)
-        assert bed.shape[0] == ncells, 'mesh file and input have different nCells'
+    bed = read_bed_topography(ds, args.mesh, t)
     x = np.asarray(ds['xCell'][:])
     y = np.asarray(ds['yCell'][:])
     dc = float(np.median(ds['dcEdge'][:]))
     # hexagonal Voronoi cell area from the median cell spacing (no areaCell in file)
-    area = np.full(ncells, np.sqrt(3.0) / 2.0 * dc ** 2)
+    area = estimate_cell_area(dc, ncells)
     adj = neighbors_from_vertices(np.asarray(ds['cellsOnVertex'][:]), ncells)
 
-    ice = (mask & MASK_ICE) > 0
-    floating = ice & ((mask & MASK_FLOATING) > 0)
-    dyn_float = floating & ((mask & MASK_DYNAMIC) > 0)
-    nondyn_float = floating & ~dyn_float
-    # ice-free ocean: no ice and bed below sea level
-    ocean = ~ice & (bed < 0.0)
-
-    def has_neighbor(flag):
-        return np.asarray(adj @ flag.astype(np.int8)).ravel() > 0
-
-    nbr_ocean = has_neighbor(ocean)
-    nondyn_near_ocean = nondyn_float & nbr_ocean
-    front = dyn_float & (nbr_ocean | has_neighbor(nondyn_near_ocean))
-    # cells whose removal/exposure starts retreat: next to ocean or to
-    # (non-dynamic) floating ice that borders ocean
-    exposed0 = nbr_ocean | has_neighbor(nondyn_near_ocean)
+    cls = identify_front_cells(mask, bed, adj)
+    ice, floating, dyn_float = cls['ice'], cls['floating'], cls['dyn_float']
+    front, exposed0 = cls['front'], cls['exposed0']
     print(f'{front.sum()} calving-front cells, {dyn_float.sum()} dynamic floating cells, '
           f'cell area {area[0] / 1e6:.2f} km^2')
 
@@ -227,26 +218,41 @@ def main():
           f"{'thr':>6s} {'loss%':>6s}"
     print(hdr)
     for name, geom in regions.items():
-        shapely.prepare(geom)
-        in_reg = shapely.contains_xy(geom, x, y)
+        in_reg = region_mask(geom, x, y)
         fl_area = area[in_reg & floating].sum()
         fr = in_reg & front
-        if fl_area == 0 or fr.sum() == 0:
+        fr_idx, near_idx = region_groups(in_reg, front, floating, damage, x, y,
+                                         1.e3 * args.near_dist_km, args.min_damage)
+        if fl_area == 0 or fr.sum() == 0 or (args.criterion == 'percentile'
+                                             and len(fr_idx) == 0):
             print(f'{name:45s} no floating/front cells -> default later')
             result[name] = (in_reg, np.nan)
             continue
-        cand = np.unique(np.concatenate([damage[fr], [0.0, 1.0 + 1e-9]]))
-        # loss is non-increasing in threshold; binary search the smallest feasible one
-        lo, hi = 0, len(cand) - 1
-        while lo < hi:
-            mid = (lo + hi) // 2
-            loss = area[simulate_retreat(cand[mid], dyn_float, damage, area, adj,
-                                         exposed0, in_reg)].sum() / fl_area
-            if loss < args.max_area_loss:
-                hi = mid
+        if args.criterion == 'percentile':
+            pcts = {'front': np.percentile(damage[fr_idx], args.percentile)}
+            if len(near_idx) > 0:
+                pcts['behind'] = np.percentile(damage[near_idx], args.percentile)
+            if args.percentile_basis == 'max':
+                thr_min = max(pcts.values())
+            elif args.percentile_basis in pcts:
+                thr_min = pcts[args.percentile_basis]
             else:
-                lo = mid + 1
-        thr_min = cand[lo]
+                thr_min = pcts['front']  # no cells behind the front: fall back
+            label = f'P{args.percentile:g}, {args.percentile_basis}'
+        else:
+            cand = np.unique(np.concatenate([damage[fr], [0.0, 1.0 + 1e-9]]))
+            # loss is non-increasing in threshold; binary search the smallest feasible one
+            lo, hi = 0, len(cand) - 1
+            while lo < hi:
+                mid = (lo + hi) // 2
+                loss = area[simulate_retreat(cand[mid], dyn_float, damage, area, adj,
+                                             exposed0, in_reg)].sum() / fl_area
+                if loss < args.max_area_loss:
+                    hi = mid
+                else:
+                    lo = mid + 1
+            thr_min = cand[lo]
+            label = f'<{100 * args.max_area_loss:g}% area loss'
         thr = min(thr_min + args.growth_margin, 1.0)
         removed = simulate_retreat(thr, dyn_float, damage, area, adj, exposed0, in_reg)
         loss = area[removed].sum() / fl_area
@@ -254,34 +260,19 @@ def main():
         print(f'{name:45s} {fr.sum():6d} {p10:6.3f} {p50:6.3f} {p90:6.3f} '
               f'{thr:6.3f} {100 * loss:6.2f}')
         result[name] = (in_reg, thr)
-        plot_region(name, geom, thr, loss, removed, in_reg, front, ice, damage, x, y, dc,
-                    args.fig_dir)
+        plot_region(name, geom, thr, loss, removed, in_reg, front, ice, floating, damage, x, y,
+                    dc, args.fig_dir, fr_idx, near_idx, 1.e3 * args.near_dist_km, label, args.min_damage)
 
-    vals = np.array([v for _, v in result.values() if np.isfinite(v)])
-    default = float(np.median(vals))
+    out, default = combine_region_values(result, ncells, overlap='max')  # overlap -> largest
     print(f'Default (median over regions) for cells outside regions / uncalibrated: {default:.3f}')
 
-    out = np.full(ncells, np.nan)
-    for in_reg, thr in result.values():
-        v = thr if np.isfinite(thr) else default
-        out[in_reg] = np.fmax(out[in_reg], v)  # overlap -> largest value
-    out[np.isnan(out)] = default
-
-    with netCDF4.Dataset(args.output, 'w') as o:
-        o.createDimension('Time', None)
-        o.createDimension('nCells', ncells)
-        var = o.createVariable('damageCalvingThreshold', 'f8', ('Time', 'nCells'))
-        var.long_name = 'damage threshold for crevasse-depth calving'
-        var[0, :] = out
-        for nm in ('xCell', 'yCell', 'zCell'):
-            v = o.createVariable(nm, 'f8', ('nCells',))
-            v[:] = ds[nm][:]
-        o.createDimension('nVertices', len(ds.dimensions['nVertices']))
-        o.createDimension('vertexDegree', len(ds.dimensions['vertexDegree']))
-        v = o.createVariable('cellsOnVertex', 'i4', ('nVertices', 'vertexDegree'))
-        v[:] = ds['cellsOnVertex'][:]
-        o.history = f'Created by calibrate_damage_threshold.py from {args.input}; ' \
-                    f'max_area_loss={args.max_area_loss}, growth_margin={args.growth_margin}'
+    write_calibration_file(
+        args.output, 'damageCalvingThreshold', 'damage threshold for crevasse-depth calving',
+        None, out, ds,
+        f'Created by calibrate_damage_threshold_for_cd_calving.py from {args.input}; '
+        f'criterion={args.criterion}, max_area_loss={args.max_area_loss}, '
+        f'percentile={args.percentile}, basis={args.percentile_basis}, '
+        f'growth_margin={args.growth_margin}')
     print(f'Wrote {args.output}')
 
 
